@@ -29,11 +29,18 @@ if ( $formulaires ) {
 }
 ?>
 <div class="wrap iam-wrap">
-	<h1 class="wp-heading-inline"><?php esc_html_e( 'Formulaires', 'iam-leads' ); ?></h1>
-	<a href="<?php echo esc_url( admin_url( 'admin.php?page=iam-leads-forms&action=new' ) ); ?>" class="page-title-action">
-		<?php esc_html_e( 'Créer un formulaire', 'iam-leads' ); ?>
-	</a>
-	<hr class="wp-header-end">
+	<?php
+	IAM_Leads_Admin_Menu::entete(
+		__( 'Captation', 'iam-leads' ),
+		__( 'Formulaires', 'iam-leads' ),
+		sprintf(
+			'<a href="%1$s" class="button button-primary"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span> %2$s</a>',
+			esc_url( admin_url( 'admin.php?page=iam-leads-forms&action=new' ) ),
+			esc_html__( 'Créer un formulaire', 'iam-leads' )
+		),
+		__( 'Insérez un formulaire n’importe où avec son shortcode.', 'iam-leads' )
+	);
+	?>
 
 	<?php IAM_Leads_Admin_Menu::notice(); ?>
 
@@ -45,7 +52,7 @@ if ( $formulaires ) {
 			</a>
 		</div>
 	<?php else : ?>
-		<table class="wp-list-table widefat fixed striped">
+		<table class="wp-list-table widefat fixed striped iam-table">
 			<thead>
 				<tr>
 					<th style="width:60px;"><?php esc_html_e( 'ID', 'iam-leads' ); ?></th>

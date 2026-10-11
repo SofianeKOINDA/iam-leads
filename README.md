@@ -390,7 +390,26 @@ modification ne serait visible que sur les formulaires créés ensuite. Le champ
 « Programme associé » d'un formulaire, lui, n'est pas migré : si sa valeur a disparu de
 la liste, le sélecteur retombe sur « — Aucun — » et il faut le repositionner à la main.
 
+## Mises à jour automatiques (GitHub)
+
+Le plugin se met à jour depuis les **Releases** du dépôt
+[SofianeKOINDA/iam-leads](https://github.com/SofianeKOINDA/iam-leads)
+(bibliothèque *Plugin Update Checker*, `lib/plugin-update-checker`, licence MIT).
+
+1. Monter la version dans `iam-leads.php` (en-tête `Version:` **et** `IAM_LEADS_VERSION`).
+2. Commiter, pousser, puis : `git tag v1.6.1 && git push origin v1.6.1`.
+3. La GitHub Action `.github/workflows/release.yml` vérifie la concordance tag/version, la
+   syntaxe PHP, construit `iam-leads.zip` et publie la Release.
+4. Dans WordPress (*Extensions*), activer « mises à jour auto » sur IAM Leads. Après chaque
+   mise à jour, tables et synchronisations sont rejouées au premier passage dans l'admin.
+
 ## Journal des versions
+
+### 1.6.0
+- Mises à jour automatiques depuis les Releases GitHub et publication par GitHub Action.
+- Admin alignée sur IAM Certifications : écrans centrés, en-tête commun (sur-titre, titre, actions), cartes et tableaux arrondis, boutons pilule, champs arrondis, vert IAM pour la marque (couleurs de statut inchangées).
+- Formulaire public aux couleurs IAM par défaut (vert pour les repères, bouton or `#EDA900`, champs arrondis, boutons pilule) ; les couleurs de bouton restent réglables par formulaire.
+- Nettoyage : une seule routine de mise à niveau. Auparavant, la mise à jour de la version stockée empêchait la mise à jour des tables (dbDelta) après une mise à jour du plugin.
 
 ### 1.5.3
 - Formulaires multi-étapes : au chargement de la page, le premier affichage ne fait plus défiler la page jusqu'au formulaire et ne place plus le focus dans le premier champ (le défilement et le focus restent actifs lors des changements d'étape).

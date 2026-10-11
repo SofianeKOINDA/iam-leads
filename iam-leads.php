@@ -3,9 +3,10 @@
  * Plugin Name:       IAM Leads
  * Plugin URI:        https://groupeiam.com
  * Description:       Système de génération et de gestion de leads pour le Groupe IAM : constructeur de formulaires, capture UTM, téléchargement de plaquette, tableau de bord, CRM et notifications WhatsApp.
- * Version:           1.5.3
+ * Version:           1.6.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
+ * Update URI:        https://github.com/SofianeKOINDA/iam-leads
  * Author:            Groupe IAM
  * Text Domain:       iam-leads
  * Domain Path:       /languages
@@ -17,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IAM_LEADS_VERSION', '1.5.3' );
+define( 'IAM_LEADS_VERSION', '1.6.0' );
 define( 'IAM_LEADS_FILE', __FILE__ );
 define( 'IAM_LEADS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'IAM_LEADS_URL', plugin_dir_url( __FILE__ ) );
@@ -37,6 +38,36 @@ require_once IAM_LEADS_PATH . 'includes/class-whatsapp.php';
 require_once IAM_LEADS_PATH . 'includes/class-emails.php';
 require_once IAM_LEADS_PATH . 'includes/class-logger.php';
 require_once IAM_LEADS_PATH . 'admin/admin-menu.php';
+require_once IAM_LEADS_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+
+/**
+ * Mises à jour automatiques depuis les Releases GitHub (tag vX.Y.Z), construites
+ * par .github/workflows/release.yml. WordPress les propose comme pour tout
+ * plugin et les installe seul si les mises à jour auto sont activées.
+ * Dépôt privé : définir IAM_LEADS_GITHUB_TOKEN dans wp-config.php.
+ *
+ * @return YahnisElsts\PluginUpdateChecker\v5p7\Vcs\PluginUpdateChecker
+ */
+function iam_leads_updater() {
+	static $checker = null;
+	if ( null === $checker ) {
+		$checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+			'https://github.com/SofianeKOINDA/iam-leads/',
+			IAM_LEADS_FILE,
+			'iam-leads'
+		);
+		// Seul le ZIP attaché à la release est installé (dossier « iam-leads » à la racine).
+		$checker->getVcsApi()->enableReleaseAssets(
+			'/^iam-leads\.zip$/',
+			YahnisElsts\PluginUpdateChecker\v5p7\Vcs\Api::REQUIRE_RELEASE_ASSETS
+		);
+		if ( defined( 'IAM_LEADS_GITHUB_TOKEN' ) && IAM_LEADS_GITHUB_TOKEN ) {
+			$checker->setAuthentication( IAM_LEADS_GITHUB_TOKEN );
+		}
+	}
+	return $checker;
+}
+iam_leads_updater();
 
 /**
  * Création / mise à jour des tables et du formulaire par défaut.
@@ -108,12 +139,21 @@ function iam_leads_activate() {
 
 	IAM_Leads_Form_Builder::seed_default_form();
 
-	// La liste des programmes a pu changer depuis la création des formulaires.
-	IAM_Leads_Form_Builder::sync_programme_options();
-
 	if ( false === get_option( 'iam_leads_settings' ) ) {
 		add_option( 'iam_leads_settings', IAM_Leads::default_settings() );
 	}
+
+	iam_leads_synchroniser();
+}
+
+/**
+ * Synchronisations qui dépendent des données, rejouées à l'activation comme
+ * après chaque mise à jour : liste des programmes, plaquettes orphelines,
+ * cache des agrégats, version installée.
+ */
+function iam_leads_synchroniser() {
+	// La liste des programmes a pu changer depuis la création des formulaires.
+	IAM_Leads_Form_Builder::sync_programme_options();
 
 	// Les plaquettes sont indexées par intitulé de programme : on écarte les
 	// entrées devenues orphelines, qui ne seraient plus ni affichées ni servies.
@@ -131,7 +171,7 @@ function iam_leads_activate() {
 		}
 	}
 
-	// Le schéma a pu changer : les agrégats en cache ne sont plus fiables.
+	// Le schéma ou les intitulés ont pu changer : les agrégats en cache ne sont plus fiables.
 	IAM_Leads_Dashboard::purger_cache();
 
 	update_option( 'iam_leads_version', IAM_LEADS_VERSION );
@@ -142,39 +182,14 @@ register_activation_hook( __FILE__, 'iam_leads_activate' );
  * Mise à niveau silencieuse après mise à jour du plugin.
  *
  * Le hook d'activation ne se déclenche pas lors d'une simple mise à jour des
- * fichiers (via FTP, Git ou l'updater). On compare donc la version stockée à
- * la version du code : si elle a changé, on rejoue les synchronisations qui
- * dépendent des données (liste des programmes, plaquettes orphelines, cache),
- * sans avoir à désactiver / réactiver le plugin manuellement.
+ * fichiers (FTP, Git ou mise à jour automatique). On compare donc la version
+ * stockée à celle du code et, si elle a changé, on rejoue l'installation
+ * complète : tables (dbDelta) puis synchronisations.
  */
 function iam_leads_maybe_upgrade() {
-	$version_installee = get_option( 'iam_leads_version' );
-
-	if ( IAM_LEADS_VERSION === $version_installee ) {
-		return;
+	if ( IAM_LEADS_VERSION !== get_option( 'iam_leads_version' ) ) {
+		iam_leads_activate();
 	}
-
-	// La liste des programmes a pu changer : on aligne les formulaires existants.
-	IAM_Leads_Form_Builder::sync_programme_options();
-
-	// On écarte les plaquettes rattachées à un programme qui n'existe plus.
-	$reglages = (array) get_option( 'iam_leads_settings', array() );
-	if ( ! empty( $reglages['plaquettes'] ) && is_array( $reglages['plaquettes'] ) ) {
-		$connues = array_intersect_key(
-			$reglages['plaquettes'],
-			array_flip( IAM_Leads_Form_Builder::programmes() )
-		);
-
-		if ( count( $connues ) !== count( $reglages['plaquettes'] ) ) {
-			$reglages['plaquettes'] = $connues;
-			update_option( 'iam_leads_settings', $reglages );
-		}
-	}
-
-	// Les agrégats en cache peuvent refléter d'anciens intitulés.
-	IAM_Leads_Dashboard::purger_cache();
-
-	update_option( 'iam_leads_version', IAM_LEADS_VERSION );
 }
 add_action( 'admin_init', 'iam_leads_maybe_upgrade' );
 

@@ -14,7 +14,7 @@ $plaquettes = (array) $reglages['plaquettes'];
 $journal    = IAM_Leads_Logger::lire( 30 );
 ?>
 <div class="wrap iam-wrap">
-	<h1><?php esc_html_e( 'Réglages IAM Leads', 'iam-leads' ); ?></h1>
+	<?php IAM_Leads_Admin_Menu::entete( __( 'Configuration', 'iam-leads' ), __( 'Réglages', 'iam-leads' ), '', __( 'Notifications, envoi des e-mails, plaquettes, CRM et WhatsApp.', 'iam-leads' ) ); ?>
 
 	<?php IAM_Leads_Admin_Menu::notice(); ?>
 
@@ -324,7 +324,7 @@ Consultez la fiche complète dans le tableau de bord IAM Leads.</textarea>
 		<?php if ( ! $journal ) : ?>
 			<p><?php esc_html_e( 'Aucun envoi enregistré pour le moment.', 'iam-leads' ); ?></p>
 		<?php else : ?>
-			<table class="wp-list-table widefat striped">
+			<table class="wp-list-table widefat striped iam-table">
 				<thead>
 					<tr>
 						<th style="width:150px;"><?php esc_html_e( 'Date', 'iam-leads' ); ?></th>

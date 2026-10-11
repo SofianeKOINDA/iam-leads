@@ -1,22 +1,23 @@
 /*
  * IAM Leads — styles publics.
- * Les couleurs et les fontes proviennent des variables globales Elementor
- * pour que le formulaire hérite de l'identité déjà définie dans le thème Univet.
+ * Charte Groupe IAM (alignée sur IAM Certifications) : vert de marque pour
+ * les repères, or pour l'action. Les fontes restent celles du thème.
+ * Les couleurs du bouton restent réglables par formulaire (--iam-bouton*).
  */
 
 .iam-form-wrap {
-	--iam-primaire: var( --e-global-color-primary, #1b4b8f );
+	--iam-primaire: #0b5d3b;
+	--iam-primaire-halo: rgba( 11, 93, 59, .14 );
 
-	/* Réglables par formulaire ; sans réglage le bouton suit la couleur
-	   principale du thème, comme avant. */
-	--iam-bouton: var( --iam-primaire );
-	--iam-bouton-texte: #fff;
+	/* Réglables par formulaire ; par défaut le bouton prend l'or IAM. */
+	--iam-bouton: #eda900;
+	--iam-bouton-texte: #1f2a25;
 
-	--iam-texte: var( --e-global-color-text, #3d4453 );
-	--iam-bordure: #d8dce3;
+	--iam-texte: #3d4742;
+	--iam-bordure: #d6cec0;
 	--iam-erreur: #b32d2e;
 	--iam-succes: #17663a;
-	--iam-rayon: 4px;
+	--iam-rayon: 12px;
 
 	font-family: var( --e-global-typography-text-font-family, inherit );
 	color: var( --iam-texte );
@@ -84,7 +85,7 @@
 .iam-field textarea:focus {
 	outline: none;
 	border-color: var( --iam-primaire );
-	box-shadow: 0 0 0 3px rgba( 27, 75, 143, .15 );
+	box-shadow: 0 0 0 4px var( --iam-primaire-halo );
 }
 
 .iam-field input:focus-visible,
@@ -142,19 +143,22 @@
 
 .iam-form-submit {
 	display: inline-block;
+	min-height: 48px;
 	padding: 14px 34px;
 	border: 0;
-	border-radius: var( --iam-rayon );
+	border-radius: 999px;
 	background: var( --iam-bouton );
 	color: var( --iam-bouton-texte );
 	font: inherit;
-	font-weight: 600;
+	font-weight: 700;
 	cursor: pointer;
-	transition: opacity .15s ease;
+	transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
 }
 
 .iam-form-submit:hover {
-	opacity: .9;
+	filter: brightness( 1.05 );
+	box-shadow: 0 10px 24px rgba( 237, 169, 0, .3 );
+	transform: translateY( -1px );
 }
 
 .iam-form-submit[disabled] {
@@ -249,7 +253,7 @@
 	display: block;
 	margin-bottom: 4px;
 	font-size: 13px;
-	color: #6b7280;
+	color: #6b746f;
 }
 
 .iam-field-nom .iam-label {
@@ -289,7 +293,7 @@
 
 .iam-step-description {
 	margin: 0 0 20px;
-	color: #6b7280;
+	color: #6b746f;
 }
 
 /* Progression — barre */
@@ -300,7 +304,7 @@
 
 .iam-progression-barre {
 	height: 6px;
-	background: #eceff3;
+	background: #ece8df;
 	border-radius: 999px;
 	overflow: hidden;
 }
@@ -315,7 +319,7 @@
 .iam-progression-texte {
 	margin: 8px 0 0;
 	font-size: 13px;
-	color: #6b7280;
+	color: #6b746f;
 }
 
 /* Progression — points numérotés */
@@ -338,7 +342,7 @@
 	position: relative;
 	text-align: center;
 	font-size: 13px;
-	color: #9ca3af;
+	color: #a39d90;
 }
 
 /* Trait de liaison entre les points */
@@ -349,7 +353,7 @@
 	right: 50%;
 	left: -50%;
 	height: 2px;
-	background: #eceff3;
+	background: #ece8df;
 	z-index: 0;
 }
 
@@ -367,8 +371,8 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: 50%;
-	background: #eceff3;
-	color: #6b7280;
+	background: #ece8df;
+	color: #6b746f;
 	font-weight: 600;
 	flex-shrink: 0;
 }
@@ -414,12 +418,13 @@
 
 .iam-nav-suivant,
 .iam-nav-precedent {
-	padding: 14px 34px;
-	border-radius: var( --iam-rayon );
+	min-height: 48px;
+	padding: 14px 30px;
+	border-radius: 999px;
 	font: inherit;
-	font-weight: 600;
+	font-weight: 700;
 	cursor: pointer;
-	transition: opacity .15s ease, background-color .15s ease;
+	transition: transform .2s ease, box-shadow .2s ease, filter .2s ease, background-color .15s ease;
 }
 
 .iam-nav-suivant {
@@ -429,7 +434,9 @@
 }
 
 .iam-nav-suivant:hover {
-	opacity: .9;
+	filter: brightness( 1.05 );
+	box-shadow: 0 10px 24px rgba( 237, 169, 0, .3 );
+	transform: translateY( -1px );
 }
 
 .iam-nav-precedent {
@@ -440,7 +447,7 @@
 }
 
 .iam-nav-precedent:hover {
-	background: #f5f6f8;
+	background: #f3f1ec;
 }
 
 .iam-nav-precedent:focus-visible,

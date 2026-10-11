@@ -1,0 +1,51 @@
+# Publie le plugin IAM Leads : à chaque tag « vX.Y.Z », construit iam-leads.zip
+# (dossier « iam-leads/ » à la racine) et l'attache à une Release GitHub. Les sites
+# qui ont le plugin installé voient la mise à jour dans WordPress.
+#
+# Déployer :  git tag v1.6.1 && git push origin v1.6.1
+# (le numéro du tag doit être celui de « Version: » dans iam-leads.php)
+
+name: Release du plugin
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Vérifier que le tag correspond à la version du plugin
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          HEADER=$(grep -m1 -E '^\s*\*\s*Version:' iam-leads.php | awk '{print $NF}')
+          CONST=$(grep -m1 -oE "IAM_LEADS_VERSION', '[^']+'" iam-leads.php | grep -oE "[0-9][^']*")
+          echo "Tag : $TAG — en-tête : $HEADER — constante : $CONST"
+          if [ "$TAG" != "$HEADER" ] || [ "$TAG" != "$CONST" ]; then
+            echo "::error::Le tag v$TAG ne correspond pas à la version du plugin ($HEADER / $CONST)."
+            exit 1
+          fi
+
+      - name: Vérifier la syntaxe PHP
+        run: find . -name '*.php' -not -path './lib/*' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Construire le ZIP
+        run: |
+          mkdir -p dist/iam-leads
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'dist' --exclude '.gitignore' --exclude '.DS_Store' ./ dist/iam-leads/
+          (cd dist && zip -rq ../iam-leads.zip iam-leads)
+          unzip -l iam-leads.zip | tail -1
+
+      - name: Publier la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" iam-leads.zip \
+            --title "IAM Leads $GITHUB_REF_NAME" \
+            --generate-notes

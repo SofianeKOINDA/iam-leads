@@ -382,6 +382,33 @@ class IAM_Leads_Admin_Menu {
 	}
 
 	/**
+	 * En-tête commun des écrans (même gabarit que IAM Certifications) :
+	 * sur-titre, titre, actions à droite.
+	 *
+	 * @param string $sur_titre Petit libellé au-dessus du titre.
+	 * @param string $titre     Titre de la page.
+	 * @param string $actions   HTML des boutons d'action (déjà échappé).
+	 * @param string $sous      Ligne descriptive sous le titre (optionnelle).
+	 */
+	public static function entete( $sur_titre, $titre, $actions = '', $sous = '' ) {
+		?>
+		<header class="iam-entete">
+			<div class="iam-entete__texte">
+				<p class="iam-entete__sur"><?php echo esc_html( $sur_titre ); ?></p>
+				<h1 class="iam-entete__titre"><?php echo esc_html( $titre ); ?></h1>
+				<?php if ( $sous ) : ?>
+					<p class="iam-entete__sous"><?php echo esc_html( $sous ); ?></p>
+				<?php endif; ?>
+			</div>
+			<?php if ( $actions ) : ?>
+				<div class="iam-entete__actions"><?php echo $actions; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit et échappé par l'appelant. ?></div>
+			<?php endif; ?>
+		</header>
+		<hr class="wp-header-end">
+		<?php
+	}
+
+	/**
 	 * Affiche un message d'état standard.
 	 */
 	public static function notice() {

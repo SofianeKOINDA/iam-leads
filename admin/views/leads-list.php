@@ -63,10 +63,16 @@ $export_detaille = IAM_Leads_Export::preference_detail();
 $export_xlsx     = IAM_Leads_XLSX_Writer::disponible();
 ?>
 <div class="wrap iam-wrap">
-	<h1 class="wp-heading-inline"><?php esc_html_e( 'Leads', 'iam-leads' ); ?></h1>
-	<button type="button" class="page-title-action" id="iam-export-bouton"
-		aria-expanded="false" aria-controls="iam-export-panneau"><?php esc_html_e( 'Exporter', 'iam-leads' ); ?></button>
-	<hr class="wp-header-end">
+	<?php
+	IAM_Leads_Admin_Menu::entete(
+		__( 'Suivi commercial', 'iam-leads' ),
+		__( 'Leads', 'iam-leads' ),
+		sprintf(
+			'<button type="button" class="button" id="iam-export-bouton" aria-expanded="false" aria-controls="iam-export-panneau"><span class="dashicons dashicons-download" aria-hidden="true"></span> %s</button>',
+			esc_html__( 'Exporter', 'iam-leads' )
+		)
+	);
+	?>
 
 	<?php IAM_Leads_Admin_Menu::notice(); ?>
 
@@ -228,7 +234,7 @@ $export_xlsx     = IAM_Leads_XLSX_Writer::disponible();
 		?>
 	</p>
 
-	<table class="wp-list-table widefat fixed striped">
+	<table class="wp-list-table widefat fixed striped iam-table">
 		<thead>
 			<tr>
 				<th style="width:140px;"><?php esc_html_e( 'Date', 'iam-leads' ); ?></th>

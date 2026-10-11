@@ -44,7 +44,6 @@ class IAM_Leads {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public' ) );
 		add_action( 'wp_head', array( $this, 'inline_utm' ), 5 );
-		add_action( 'admin_init', array( $this, 'maybe_upgrade' ) );
 	}
 
 	/**
@@ -151,8 +150,7 @@ class IAM_Leads {
 	}
 
 	/**
-	 * Chargement des scripts publics.
-	 * jQuery est déclaré en dépendance : Elementor le charge déjà, WordPress ne le doublonnera pas.
+	 * Enregistrement des styles et scripts publics (chargés par le rendu du formulaire).
 	 */
 	public function enqueue_public() {
 		wp_register_style(
@@ -211,14 +209,5 @@ class IAM_Leads {
 		}
 
 		wp_print_inline_script_tag( $source, array( 'id' => 'iam-leads-utm' ) );
-	}
-
-	/**
-	 * Mise à jour des tables si la version a changé.
-	 */
-	public function maybe_upgrade() {
-		if ( get_option( 'iam_leads_version' ) !== IAM_LEADS_VERSION ) {
-			iam_leads_activate();
-		}
 	}
 }

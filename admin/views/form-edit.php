@@ -16,7 +16,17 @@ $champs      = $form ? $form->champs : array();
 $plaquette   = $form && $form->plaquette_pdf ? wp_get_attachment_url( $form->plaquette_pdf ) : '';
 ?>
 <div class="wrap iam-wrap">
-	<h1><?php echo $est_nouveau ? esc_html__( 'Créer un formulaire', 'iam-leads' ) : esc_html__( 'Modifier le formulaire', 'iam-leads' ); ?></h1>
+	<?php
+	IAM_Leads_Admin_Menu::entete(
+		__( 'Formulaires', 'iam-leads' ),
+		$est_nouveau ? __( 'Créer un formulaire', 'iam-leads' ) : __( 'Modifier le formulaire', 'iam-leads' ),
+		sprintf(
+			'<a href="%1$s" class="button"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> %2$s</a>',
+			esc_url( admin_url( 'admin.php?page=iam-leads-forms' ) ),
+			esc_html__( 'Tous les formulaires', 'iam-leads' )
+		)
+	);
+	?>
 
 	<?php IAM_Leads_Admin_Menu::notice(); ?>
 
@@ -127,7 +137,7 @@ $plaquette   = $form && $form->plaquette_pdf ? wp_get_attachment_url( $form->pla
 						</p>
 					</div>
 					<p class="description">
-						<?php esc_html_e( 'S\'applique au bouton d\'envoi et au bouton « Continuer ». Laissez vide, ou cliquez sur « Effacer », pour suivre la couleur principale du thème.', 'iam-leads' ); ?>
+						<?php esc_html_e( 'S\'applique au bouton d\'envoi et au bouton « Continuer ». Laissez vide, ou cliquez sur « Effacer », pour garder les couleurs IAM (bouton or, texte foncé).', 'iam-leads' ); ?>
 					</p>
 				</div>
 

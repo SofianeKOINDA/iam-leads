@@ -1,18 +1,275 @@
-/* IAM Leads — administration */
+/* IAM Leads — administration
+ *
+ * Socle commun avec IAM Certifications : écrans centrés, en-tête (sur-titre,
+ * titre, actions), cartes arrondies, boutons pilule, champs arrondis.
+ * Vert IAM pour la marque, or pour l'accent. Les couleurs de STATUT
+ * (nouveau, contacté, qualifié, converti, perdu) restent celles validées
+ * pour le daltonisme : elles servent aussi de légende aux graphiques.
+ */
+
+.iam-wrap {
+	--iam-vert: #0b5d3b;
+	--iam-vert-doux: #e7f2ec;
+	--iam-or: #eda900;
+	--iam-encre: #101828;
+	--iam-encre-2: #344054;
+	--iam-sourdine: #667085;
+	--iam-ligne: #e6e8ec;
+	--iam-fond-doux: #fafaf7;
+	--iam-rayon-carte: 14px;
+}
+
+.wrap.iam-wrap {
+	max-width: 1180px;
+	margin: 10px auto 40px;
+	padding-inline: 20px;
+	box-sizing: border-box;
+	color: var(--iam-encre);
+}
+
+.iam-wrap *,
+.iam-wrap *::before,
+.iam-wrap *::after {
+	box-sizing: border-box;
+}
+
+/* En-tête ------------------------------------------------------------- */
+.iam-entete {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 18px 0 18px;
+}
+
+.iam-entete__sur {
+	margin: 0 0 4px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: var(--iam-vert);
+}
+
+.iam-wrap h1.iam-entete__titre {
+	margin: 0;
+	padding: 0;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.2;
+	color: var(--iam-encre);
+}
+
+.iam-entete__sous {
+	margin: 6px 0 0;
+	font-size: 13px;
+	color: var(--iam-sourdine);
+}
+
+.iam-entete__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+/* Boutons -------------------------------------------------------------- */
+.iam-wrap .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 38px;
+	padding: 0 16px;
+	border: 1px solid var(--iam-ligne);
+	border-radius: 999px;
+	background: #fff;
+	color: var(--iam-encre-2);
+	font-weight: 600;
+	line-height: 1;
+	box-shadow: none;
+	transition: border-color .15s ease, color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.iam-wrap .button:hover,
+.iam-wrap .button:focus {
+	border-color: var(--iam-vert);
+	background: #fff;
+	color: var(--iam-vert);
+}
+
+.iam-wrap .button:focus-visible {
+	box-shadow: 0 0 0 3px rgba(11, 93, 59, .2);
+	outline: none;
+}
+
+.iam-wrap .button .dashicons {
+	width: 17px;
+	height: 17px;
+	font-size: 17px;
+}
+
+.iam-wrap .button-primary {
+	border-color: var(--iam-vert);
+	background: var(--iam-vert);
+	color: #fff;
+}
+
+.iam-wrap .button-primary:hover,
+.iam-wrap .button-primary:focus {
+	border-color: var(--iam-vert);
+	background: var(--iam-vert);
+	color: #fff;
+	box-shadow: 0 8px 20px rgba(16, 24, 40, .14);
+	transform: translateY(-1px);
+}
+
+.iam-wrap .button-large {
+	min-height: 44px;
+	padding: 0 22px;
+	font-size: 14px;
+}
+
+.iam-wrap .button-small {
+	min-height: 30px;
+	padding: 0 12px;
+	font-size: 12px;
+}
+
+/* Champs --------------------------------------------------------------- */
+.iam-wrap input[type="text"],
+.iam-wrap input[type="email"],
+.iam-wrap input[type="url"],
+.iam-wrap input[type="tel"],
+.iam-wrap input[type="number"],
+.iam-wrap input[type="password"],
+.iam-wrap input[type="date"],
+.iam-wrap input[type="search"],
+.iam-wrap select,
+.iam-wrap textarea {
+	min-height: 38px;
+	padding: 6px 12px;
+	border: 1px solid #d0d5dd;
+	border-radius: 10px;
+	background-color: #fff;
+	color: var(--iam-encre);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.iam-wrap select {
+	padding-right: 30px;
+}
+
+.iam-wrap input:focus,
+.iam-wrap select:focus,
+.iam-wrap textarea:focus {
+	border-color: var(--iam-vert);
+	box-shadow: 0 0 0 4px rgba(11, 93, 59, .14);
+	outline: none;
+}
+
+.iam-wrap input[type="checkbox"]:checked,
+.iam-wrap input[type="radio"]:checked {
+	border-color: var(--iam-vert);
+}
+
+.iam-wrap input[type="checkbox"]:checked::before {
+	filter: hue-rotate(-60deg) saturate(.8);
+}
+
+/* Cartes --------------------------------------------------------------- */
+.iam-wrap .iam-carte,
+.iam-wrap .iam-filtres,
+.iam-wrap .iam-vide {
+	border: 1px solid var(--iam-ligne);
+	border-radius: var(--iam-rayon-carte);
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.iam-wrap .iam-vide {
+	border-style: dashed;
+}
+
+.iam-wrap .form-table th {
+	color: var(--iam-encre-2);
+	font-weight: 600;
+}
+
+/* Tableaux ------------------------------------------------------------- */
+.iam-wrap .iam-table {
+	border: 1px solid var(--iam-ligne);
+	border-radius: var(--iam-rayon-carte);
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.iam-wrap .iam-table thead th,
+.iam-wrap .iam-table thead td {
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--iam-ligne);
+	background: var(--iam-fond-doux);
+	font-size: 11.5px;
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--iam-sourdine);
+}
+
+.iam-wrap .iam-table tbody td,
+.iam-wrap .iam-table tbody th {
+	padding: 12px 14px;
+	vertical-align: middle;
+}
+
+.iam-wrap .iam-table.striped > tbody > :nth-child(odd) {
+	background: #fff;
+}
+
+.iam-wrap .iam-table tbody tr + tr td,
+.iam-wrap .iam-table tbody tr + tr th {
+	border-top: 1px solid #f0f1f3;
+}
+
+.iam-wrap .iam-table tbody tr:hover {
+	background: var(--iam-fond-doux);
+}
+
+.iam-wrap .iam-table a {
+	color: var(--iam-vert);
+	text-decoration: none;
+}
+
+.iam-wrap .iam-table a:hover {
+	text-decoration: underline;
+}
+
+.iam-wrap .iam-table a.button {
+	color: var(--iam-encre-2);
+	text-decoration: none;
+}
+
+/* Avis WordPress dans nos écrans */
+.iam-wrap .notice {
+	border-radius: 10px;
+}
+
+/* ───────────────────────────────────────────────────────────────── */
+
 
 .iam-wrap .iam-carte {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
-	padding: 16px 20px 20px;
+	padding: 18px 22px 22px;
 	margin: 0 0 20px;
 }
 
 .iam-wrap .iam-carte h2 {
 	margin-top: 0;
 	font-size: 15px;
-	padding-bottom: 10px;
-	border-bottom: 1px solid #f0f0f1;
+	font-weight: 600;
+	color: var(--iam-encre);
+	padding-bottom: 12px;
+	border-bottom: 1px solid #f0f1f3;
 }
 
 .iam-colonnes {
@@ -53,10 +310,11 @@
 }
 
 .iam-champ {
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
+	border: 1px solid var(--iam-ligne, #e6e8ec);
+	border-radius: 12px;
 	margin-bottom: 10px;
-	background: #fbfbfc;
+	background: #fcfcfb;
+	overflow: hidden;
 }
 
 .iam-champ-entete {
@@ -82,9 +340,9 @@
 	font-size: 11px;
 	text-transform: uppercase;
 	letter-spacing: .04em;
-	color: #646970;
-	background: #f0f0f1;
-	border-radius: 10px;
+	color: var(--iam-vert, #0b5d3b);
+	background: var(--iam-vert-doux, #e7f2ec);
+	border-radius: 999px;
 	padding: 2px 10px;
 }
 
@@ -109,15 +367,16 @@
 	margin-bottom: 4px;
 }
 
-.button.iam-danger {
-	color: #b32d2e;
-	border-color: #b32d2e;
+.iam-wrap .button.iam-danger {
+	color: #b42318;
+	border-color: #fecdca;
 }
 
-.button.iam-danger:hover {
-	background: #b32d2e;
+.iam-wrap .button.iam-danger:hover,
+.iam-wrap .button.iam-danger:focus {
+	background: #b42318;
 	color: #fff;
-	border-color: #b32d2e;
+	border-color: #b42318;
 }
 
 .iam-fichier {
@@ -129,9 +388,11 @@
 
 .iam-shortcode-rappel code,
 .iam-copiable {
-	background: #f0f0f1;
-	padding: 3px 8px;
-	border-radius: 3px;
+	background: var(--iam-vert-doux, #e7f2ec);
+	color: var(--iam-vert, #0b5d3b);
+	padding: 4px 10px;
+	border-radius: 8px;
+	font-size: 12px;
 }
 
 /* Filtres et listes */
@@ -142,10 +403,7 @@
 	gap: 8px;
 	align-items: center;
 	margin: 16px 0 8px;
-	padding: 12px;
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
+	padding: 14px;
 }
 
 .iam-filtre-date {
@@ -166,9 +424,6 @@
 }
 
 .iam-vide {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
 	padding: 40px;
 	text-align: center;
 	margin-top: 20px;
@@ -273,21 +528,20 @@
 
 /* ═══════════════════════════════════════════════════════════════
    Tableau de bord
-   Palette validée avec l'outil de contrôle daltonisme/contraste :
-   #2a78d6 pour les séries uniques, 5 teintes sémantiques pour les
-   statuts. Le couple vert/rouge étant en zone d'alerte CVD, les
+   Vert IAM #0b5d3b pour les séries uniques (marque), 5 teintes
+   sémantiques validées daltonisme/contraste pour les statuts. Le couple vert/rouge étant en zone d'alerte CVD, les
    libellés d'axe et les valeurs chiffrées sont obligatoires.
    ═══════════════════════════════════════════════════════════════ */
 
 .iam-dashboard {
 	--iam-surface: #fff;
-	--iam-bord: #dcdcde;
+	--iam-bord: #e6e8ec;
 	--iam-grille: #e8e8ea;
 	--iam-ink1: #1d2327;
 	--iam-ink2: #50575e;
 	--iam-muted: #787c82;
-	--iam-serie: #2a78d6;
-	--iam-marque: #04589e;
+	--iam-serie: #0b5d3b;
+	--iam-marque: #0b5d3b;
 	--iam-bon: #006300;
 	--iam-mauvais: #b32d2e;
 }
@@ -300,15 +554,12 @@
 	justify-content: space-between;
 	gap: 16px;
 	flex-wrap: wrap;
-	margin: 6px 0 18px;
+	margin: 18px 0 18px;
 }
 
 .iam-dashboard h1 {
-	font-size: 21px;
-	font-weight: 600;
 	margin: 0;
 	padding: 0;
-	letter-spacing: -.01em;
 }
 
 .iam-tete-sous {
@@ -330,8 +581,8 @@
 	display: inline-flex;
 	background: var(--iam-surface);
 	border: 1px solid var(--iam-bord);
-	border-radius: 6px;
-	padding: 2px;
+	border-radius: 999px;
+	padding: 3px;
 	gap: 2px;
 }
 
@@ -344,13 +595,13 @@
 	font-size: 12.5px;
 	line-height: 1.4;
 	color: var(--iam-ink2);
-	padding: 5px 13px;
-	border-radius: 4px;
+	padding: 6px 14px;
+	border-radius: 999px;
 	transition: background .12s ease, color .12s ease;
 }
 
 .iam-segments button:hover {
-	background: #f2f5f9;
+	background: #f3f1ec;
 	color: var(--iam-ink1);
 }
 
@@ -369,7 +620,7 @@
 	appearance: none;
 	background: var(--iam-surface);
 	border: 1px solid var(--iam-bord);
-	border-radius: 6px;
+	border-radius: 999px;
 	padding: 6px 13px;
 	font: inherit;
 	font-size: 12.5px;
@@ -413,7 +664,7 @@
 .iam-tuile {
 	background: var(--iam-surface);
 	border: 1px solid var(--iam-bord);
-	border-radius: 8px;
+	border-radius: var(--iam-rayon-carte);
 	padding: 15px 17px 13px;
 	display: flex;
 	flex-direction: column;
@@ -485,7 +736,7 @@
 /* Cartes graphiques */
 
 .iam-dashboard .iam-carte {
-	border-radius: 8px;
+	border-radius: var(--iam-rayon-carte);
 	padding: 16px 18px 14px;
 	margin: 0;
 	min-width: 0;
@@ -691,7 +942,7 @@ details.iam-vue-table summary:hover {
 }
 
 .iam-table-leads tbody tr:hover {
-	background: #fafbfc;
+	background: #fafaf7;
 }
 
 .iam-table-leads a {
@@ -748,13 +999,13 @@ details.iam-vue-table summary:hover {
 /* Séparateur d'étape dans le constructeur */
 
 .iam-champ.iam-champ-separateur {
-	background: #f0f6fc;
-	border-color: #a7c8e8;
+	background: #f3f8f5;
+	border-color: #9cc6b0;
 	border-style: dashed;
 }
 
 .iam-champ.iam-champ-separateur .iam-champ-type {
-	background: #04589e;
+	background: #0b5d3b;
 	color: #fff;
 }
 
@@ -762,7 +1013,6 @@ details.iam-vue-table summary:hover {
 
 .iam-wrap .iam-export {
 	margin: 16px 0 20px;
-	max-width: 1080px;
 }
 
 .iam-export-raccourcis {
@@ -778,8 +1028,8 @@ details.iam-vue-table summary:hover {
 }
 
 .iam-export-groupe {
-	border: 1px solid #f0f0f1;
-	border-radius: 4px;
+	border: 1px solid #f0f1f3;
+	border-radius: 12px;
 	padding: 10px 12px 12px;
 	margin: 0;
 }
@@ -813,8 +1063,8 @@ details.iam-vue-table summary:hover {
 }
 
 .iam-export-detail {
-	border-color: #a7c8e8;
-	background: #f6fafd;
+	border-color: #9cc6b0;
+	background: #f3f8f5;
 }
 
 .iam-export-bascule {
@@ -846,4 +1096,37 @@ details.iam-vue-table summary:hover {
 
 .iam-export-lancer .iam-export-note {
 	margin: 0;
+}
+
+/* Responsive commun */
+@media screen and (max-width: 782px) {
+	.wrap.iam-wrap {
+		padding-inline: 10px;
+	}
+
+	.iam-wrap h1.iam-entete__titre {
+		font-size: 22px;
+	}
+}
+
+/* Sélecteur de couleur WordPress : on lui rend son gabarit natif, et la
+   colonne latérale de l'éditeur empile ses champs (trop étroite pour deux). */
+.iam-wrap .wp-picker-container .button,
+.iam-wrap .wp-picker-container .wp-color-result.button {
+	display: inline-block;
+	min-height: 30px;
+	padding: 0 0 0 30px;
+	border-radius: 4px;
+	font-weight: 400;
+	gap: 0;
+	transform: none;
+}
+
+.iam-wrap .wp-picker-container .wp-color-result-text {
+	padding: 0 8px;
+	line-height: 28px;
+}
+
+.iam-colonnes > :last-child .iam-grille-2 {
+	grid-template-columns: minmax(0, 1fr);
 }

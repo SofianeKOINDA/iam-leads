@@ -71,7 +71,8 @@ endif;
 
 	<div class="iam-tete">
 		<div class="iam-tete-titre">
-			<h1><?php esc_html_e( 'Tableau de bord des leads', 'iam-leads' ); ?></h1>
+			<p class="iam-entete__sur"><?php esc_html_e( 'Pilotage', 'iam-leads' ); ?></p>
+			<h1 class="iam-entete__titre"><?php esc_html_e( 'Tableau de bord des leads', 'iam-leads' ); ?></h1>
 			<p class="iam-tete-sous">
 				<?php
 				printf(

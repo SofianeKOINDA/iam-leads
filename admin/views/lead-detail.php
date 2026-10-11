@@ -16,13 +16,17 @@ $form      = IAM_Leads_Form_Builder::get( $lead->form_id );
 $url_suppr = wp_nonce_url( admin_url( 'admin-post.php?action=iam_delete_lead&id=' . $lead->id ), 'iam_delete_lead' );
 ?>
 <div class="wrap iam-wrap">
-	<h1 class="wp-heading-inline">
-		<?php echo esc_html( $lead->nom_complet ? $lead->nom_complet : __( 'Lead sans nom', 'iam-leads' ) ); ?>
-	</h1>
-	<a href="<?php echo esc_url( admin_url( 'admin.php?page=iam-leads-list' ) ); ?>" class="page-title-action">
-		<?php esc_html_e( 'Retour à la liste', 'iam-leads' ); ?>
-	</a>
-	<hr class="wp-header-end">
+	<?php
+	IAM_Leads_Admin_Menu::entete(
+		__( 'Lead', 'iam-leads' ),
+		$lead->nom_complet ? $lead->nom_complet : __( 'Lead sans nom', 'iam-leads' ),
+		sprintf(
+			'<a href="%1$s" class="button"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> %2$s</a>',
+			esc_url( admin_url( 'admin.php?page=iam-leads-list' ) ),
+			esc_html__( 'Retour à la liste', 'iam-leads' )
+		)
+	);
+	?>
 
 	<?php IAM_Leads_Admin_Menu::notice(); ?>
 

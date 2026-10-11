@@ -23,8 +23,8 @@
 	var i18n = data.i18n || {};
 
 	var C = {
-		serie: '#2a78d6',
-		wash: 'rgba(42,120,214,.10)',
+		serie: '#0b5d3b',
+		wash: 'rgba(11,93,59,.10)',
 		grille: '#e8e8ea',
 		axe: '#c3c2b7',
 		muted: '#787c82',
@@ -33,8 +33,8 @@
 		surface: '#ffffff'
 	};
 
-	// Rampe ordinale à teinte unique, pour la barre part-à-tout.
-	var RAMPE = [ '#2a78d6', '#5598e7', '#86b6ef', '#b7d3f6' ];
+	// Rampe ordinale à teinte unique (vert IAM), pour la barre part-à-tout.
+	var RAMPE = [ '#0b5d3b', '#3d8a64', '#7bb597', '#b9dcc8' ];
 
 	// Clés brutes → teinte. Indépendant du libellé traduit.
 	var STATUT = {

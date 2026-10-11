@@ -47,7 +47,7 @@ class IAM_Leads_Form_Builder {
 			'bouton_precedent'     => 'Précédent',
 			'bouton_suivant'       => 'Continuer',
 
-			// Vides : le bouton hérite de la couleur principale du thème.
+			// Vides : le bouton garde les couleurs IAM par défaut (or, texte foncé).
 			'couleur_bouton'       => '',
 			'couleur_bouton_texte' => '',
 		);
