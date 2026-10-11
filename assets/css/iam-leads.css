@@ -1,0 +1,458 @@
+/*
+ * IAM Leads — styles publics.
+ * Les couleurs et les fontes proviennent des variables globales Elementor
+ * pour que le formulaire hérite de l'identité déjà définie dans le thème Univet.
+ */
+
+.iam-form-wrap {
+	--iam-primaire: var( --e-global-color-primary, #1b4b8f );
+
+	/* Réglables par formulaire ; sans réglage le bouton suit la couleur
+	   principale du thème, comme avant. */
+	--iam-bouton: var( --iam-primaire );
+	--iam-bouton-texte: #fff;
+
+	--iam-texte: var( --e-global-color-text, #3d4453 );
+	--iam-bordure: #d8dce3;
+	--iam-erreur: #b32d2e;
+	--iam-succes: #17663a;
+	--iam-rayon: 4px;
+
+	font-family: var( --e-global-typography-text-font-family, inherit );
+	color: var( --iam-texte );
+}
+
+/* Le thème fournit déjà .rs-grid ; ce repli couvre les contextes où la
+   feuille du thème n'est pas chargée (page vierge, aperçu Elementor). */
+.iam-form-wrap .rs-grid {
+	display: grid;
+}
+
+.iam-form-wrap .rs-grid-cols-2 {
+	grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+}
+
+.iam-form-wrap .rs-gap-20 {
+	gap: 20px;
+}
+
+.iam-form-wrap .rs-col-span-2 {
+	grid-column: span 2;
+}
+
+@media ( max-width: 767px ) {
+	.iam-form-wrap .rs-mob-p\:grid-cols-1 {
+		grid-template-columns: 1fr;
+	}
+
+	.iam-form-wrap .rs-mob-p\:col-span-1 {
+		grid-column: span 1;
+	}
+}
+
+.iam-label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+	font-family: var( --e-global-typography-primary-font-family, inherit );
+}
+
+.iam-requis {
+	color: var( --iam-erreur );
+	margin-left: 2px;
+}
+
+.iam-field input[type="text"],
+.iam-field input[type="email"],
+.iam-field input[type="tel"],
+.iam-field input[type="date"],
+.iam-field select,
+.iam-field textarea {
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid var( --iam-bordure );
+	border-radius: var( --iam-rayon );
+	background: #fff;
+	color: inherit;
+	font: inherit;
+	line-height: 1.4;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.iam-field input:focus,
+.iam-field select:focus,
+.iam-field textarea:focus {
+	outline: none;
+	border-color: var( --iam-primaire );
+	box-shadow: 0 0 0 3px rgba( 27, 75, 143, .15 );
+}
+
+.iam-field input:focus-visible,
+.iam-field select:focus-visible,
+.iam-field textarea:focus-visible,
+.iam-form-submit:focus-visible {
+	outline: 2px solid var( --iam-primaire );
+	outline-offset: 2px;
+}
+
+.iam-choix {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 20px;
+}
+
+.iam-choix-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	cursor: pointer;
+	line-height: 1.5;
+}
+
+.iam-choix-item input {
+	margin-top: 3px;
+	flex-shrink: 0;
+}
+
+.iam-acceptance {
+	font-size: 14px;
+}
+
+.iam-acceptance a {
+	color: var( --iam-primaire );
+	text-decoration: underline;
+}
+
+/* Champ en erreur */
+
+.iam-field-erreur {
+	display: block;
+	margin-top: 6px;
+	color: var( --iam-erreur );
+	font-size: 13px;
+}
+
+.iam-field.is-erreur:not( .iam-field-nom ) input,
+.iam-field.is-erreur select,
+.iam-field.is-erreur textarea {
+	border-color: var( --iam-erreur );
+}
+
+/* Bouton — .form-btn-area vient du thème */
+
+.iam-form-submit {
+	display: inline-block;
+	padding: 14px 34px;
+	border: 0;
+	border-radius: var( --iam-rayon );
+	background: var( --iam-bouton );
+	color: var( --iam-bouton-texte );
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity .15s ease;
+}
+
+.iam-form-submit:hover {
+	opacity: .9;
+}
+
+.iam-form-submit[disabled] {
+	opacity: .6;
+	cursor: progress;
+}
+
+/* Messages */
+
+.iam-form-message {
+	padding: 14px 18px;
+	border-radius: var( --iam-rayon );
+	margin-bottom: 20px;
+	border-left: 4px solid;
+}
+
+.iam-form-message.is-succes {
+	background: #eef7f1;
+	border-color: var( --iam-succes );
+	color: var( --iam-succes );
+}
+
+.iam-form-message.is-erreur {
+	background: #fdeeee;
+	border-color: var( --iam-erreur );
+	color: var( --iam-erreur );
+}
+
+.iam-form-plaquette {
+	margin-top: 20px;
+	padding: 20px;
+	border: 1px dashed var( --iam-bordure );
+	border-radius: var( --iam-rayon );
+	text-align: center;
+}
+
+.iam-plaquette-lien {
+	display: inline-block;
+	padding: 12px 26px;
+	background: var( --iam-primaire );
+	color: #fff;
+	border-radius: var( --iam-rayon );
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.iam-plaquette-lien:hover {
+	opacity: .9;
+	color: #fff;
+}
+
+/* Pot de miel : masqué visuellement mais atteignable par les robots */
+
+.iam-hp-wrap {
+	position: absolute !important;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+.iam-field-conditionnel[hidden] {
+	display: none;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.iam-field input,
+	.iam-field select,
+	.iam-field textarea,
+	.iam-form-submit {
+		transition: none;
+	}
+}
+
+/* ------------------------------------------------------------------
+ * Champ « Nom » composite
+ * ------------------------------------------------------------------ */
+
+.iam-sous-champs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px 20px;
+}
+
+@media ( max-width: 767px ) {
+	.iam-sous-champs {
+		grid-template-columns: 1fr;
+	}
+}
+
+.iam-sous-label {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.iam-field-nom .iam-label {
+	margin-bottom: 10px;
+}
+
+/* Sur un champ composite, seul le sous-champ fautif est signalé. */
+.iam-sous-champ.is-erreur input {
+	border-color: var( --iam-erreur );
+}
+
+/* ------------------------------------------------------------------
+ * Mode étape par étape
+ * ------------------------------------------------------------------ */
+
+.iam-step {
+	border: 0;
+	margin: 0;
+	padding: 0;
+	min-width: 0; /* évite qu'un fieldset ne déborde de la grille */
+}
+
+.iam-step[hidden] {
+	display: none;
+}
+
+.iam-step-titre {
+	display: block;
+	width: 100%;
+	padding: 0;
+	margin: 0 0 6px;
+	font-size: 1.25em;
+	font-weight: 600;
+	font-family: var( --e-global-typography-primary-font-family, inherit );
+	color: var( --iam-primaire );
+}
+
+.iam-step-description {
+	margin: 0 0 20px;
+	color: #6b7280;
+}
+
+/* Progression — barre */
+
+.iam-progression {
+	margin-bottom: 28px;
+}
+
+.iam-progression-barre {
+	height: 6px;
+	background: #eceff3;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.iam-progression-remplie {
+	height: 100%;
+	background: var( --iam-primaire );
+	border-radius: 999px;
+	transition: width .3s ease;
+}
+
+.iam-progression-texte {
+	margin: 8px 0 0;
+	font-size: 13px;
+	color: #6b7280;
+}
+
+/* Progression — points numérotés */
+
+.iam-progression-points {
+	display: flex;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	gap: 4px;
+	counter-reset: none;
+}
+
+.iam-point {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	position: relative;
+	text-align: center;
+	font-size: 13px;
+	color: #9ca3af;
+}
+
+/* Trait de liaison entre les points */
+.iam-point:not( :first-child )::before {
+	content: '';
+	position: absolute;
+	top: 15px;
+	right: 50%;
+	left: -50%;
+	height: 2px;
+	background: #eceff3;
+	z-index: 0;
+}
+
+.iam-point.is-actif:not( :first-child )::before,
+.iam-point.is-faite:not( :first-child )::before {
+	background: var( --iam-primaire );
+}
+
+.iam-point-numero {
+	position: relative;
+	z-index: 1;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: #eceff3;
+	color: #6b7280;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.iam-point.is-actif .iam-point-numero,
+.iam-point.is-faite .iam-point-numero {
+	background: var( --iam-primaire );
+	color: #fff;
+}
+
+.iam-point.is-actif {
+	color: var( --iam-primaire );
+	font-weight: 600;
+}
+
+.iam-point-libelle {
+	line-height: 1.3;
+}
+
+@media ( max-width: 600px ) {
+	.iam-point-libelle {
+		display: none;
+	}
+
+	.iam-progression-points {
+		justify-content: center;
+	}
+}
+
+/* Navigation */
+
+.iam-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	margin-top: 28px;
+}
+
+.iam-nav button[hidden] {
+	display: none;
+}
+
+.iam-nav-suivant,
+.iam-nav-precedent {
+	padding: 14px 34px;
+	border-radius: var( --iam-rayon );
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity .15s ease, background-color .15s ease;
+}
+
+.iam-nav-suivant {
+	border: 0;
+	background: var( --iam-bouton );
+	color: var( --iam-bouton-texte );
+}
+
+.iam-nav-suivant:hover {
+	opacity: .9;
+}
+
+.iam-nav-precedent {
+	border: 1px solid var( --iam-bordure );
+	background: transparent;
+	color: var( --iam-texte );
+	order: -1;
+}
+
+.iam-nav-precedent:hover {
+	background: #f5f6f8;
+}
+
+.iam-nav-precedent:focus-visible,
+.iam-nav-suivant:focus-visible {
+	outline: 2px solid var( --iam-primaire );
+	outline-offset: 2px;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.iam-progression-remplie,
+	.iam-nav-suivant,
+	.iam-nav-precedent {
+		transition: none;
+	}
+}

@@ -1,0 +1,10 @@
+chart.min.js (Chart.js v4.4.1) est livré avec le plugin, dans ce dossier.
+
+Le tableau de bord le charge exclusivement depuis ici : il n'existe aucun repli
+sur un CDN. Un chargement distant coûtait une résolution DNS, une poignée de main
+TLS et 200 Ko à chaque ouverture du tableau de bord.
+
+Si le fichier disparaît, les graphiques ne s'affichent plus et une ligne est
+écrite dans le journal des intégrations (Réglages → Journal). Pour le rétablir :
+
+  curl -o chart.min.js https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js

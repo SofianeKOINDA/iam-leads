@@ -1,0 +1,6 @@
+.DS_Store
+__MACOSX/
+*.zip
+# Notes et réglages de travail locaux (non publiés)
+.claude/
+directives.md
