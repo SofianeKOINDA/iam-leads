@@ -397,13 +397,21 @@ Le plugin se met à jour depuis les **Releases** du dépôt
 (bibliothèque *Plugin Update Checker*, `lib/plugin-update-checker`, licence MIT).
 
 1. Monter la version dans `iam-leads.php` (en-tête `Version:` **et** `IAM_LEADS_VERSION`).
-2. Commiter, pousser, puis : `git tag v1.6.1 && git push origin v1.6.1`.
+2. Commiter, pousser, puis : `git tag v1.7.1 && git push origin v1.7.1`.
 3. La GitHub Action `.github/workflows/release.yml` vérifie la concordance tag/version, la
    syntaxe PHP, construit `iam-leads.zip` et publie la Release.
 4. Dans WordPress (*Extensions*), activer « mises à jour auto » sur IAM Leads. Après chaque
    mise à jour, tables et synchronisations sont rejouées au premier passage dans l'admin.
 
 ## Journal des versions
+
+### 1.7.0
+- **Admin identique à IAM Certifications** : mêmes composants et mêmes classes (`iam-adm-head`, `iam-adm-btn`, `iam-adm-tabs`, `iam-adm-row`, `iam-sec` à icône, `iam-field`, `iam-switch`, pied collant `iam-wiz-foot`). Les champs sont libellés au-dessus, sur deux colonnes, à la place des tableaux WordPress.
+- **Tableau de bord** : indicateurs en cartes à icône (le premier en vert), soumissions en barres plutôt qu'en courbe (les faibles volumes donnaient des dents de scie), graphiques regroupés par taille, libellés longs abrégés.
+- **Réglages** : une section par onglet (E-mails, Serveur d'envoi, Plaquettes, CRM, WhatsApp, Journal), interrupteurs d'activation dans l'en-tête des sections, plaquettes sur deux colonnes, un seul bouton d'enregistrement collant. Après l'enregistrement, on revient sur l'onglet ouvert.
+- **Leads** : onglets par statut avec compteurs (qui respectent les autres filtres), filtres compacts, avatars, pagination intégrée à la carte.
+- **Formulaires** : cartes comme le catalogue de Certifications, shortcode copiable d'un clic ; éditeur en sections (Identité, Champs, Après l'envoi, Affichage) avec pied collant.
+- **Fiche lead** : réponses et provenance en grille, actions de contact (e-mail, WhatsApp) et envois automatiques dans la colonne latérale.
 
 ### 1.6.0
 - Mises à jour automatiques depuis les Releases GitHub et publication par GitHub Action.

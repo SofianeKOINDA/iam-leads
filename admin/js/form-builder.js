@@ -30,7 +30,10 @@
 	function renumeroter() {
 		// Le serveur compare ce total au nombre de champs reçus pour détecter
 		// une requête coupée par max_input_vars.
-		$( '#iam-champs-total' ).val( $liste.find( '.iam-champ' ).length );
+		var total = $liste.find( '.iam-champ' ).length;
+
+		$( '#iam-champs-total' ).val( total );
+		$( '#iam-champs-compte' ).text( total + ( total > 1 ? ' champs' : ' champ' ) );
 
 		$liste.find( '.iam-champ' ).each( function ( index ) {
 			$( this ).attr( 'data-index', index );

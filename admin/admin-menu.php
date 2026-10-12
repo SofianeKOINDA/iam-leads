@@ -52,6 +52,7 @@ class IAM_Leads_Admin_Menu {
 		}
 
 		wp_enqueue_style( 'iam-leads-admin', IAM_LEADS_URL . 'admin/css/admin.css', array(), IAM_LEADS_VERSION );
+		wp_enqueue_script( 'iam-leads-admin', IAM_LEADS_URL . 'admin/js/admin.js', array(), IAM_LEADS_VERSION, true );
 
 		if ( false !== strpos( $hook, 'iam-leads-forms' ) ) {
 			wp_enqueue_media();
@@ -311,13 +312,13 @@ class IAM_Leads_Admin_Menu {
 		$destinataires = array_filter( array_map( 'trim', explode( ',', (string) IAM_Leads::get_setting( 'admin_emails' ) ) ) );
 
 		if ( ! $destinataires ) {
-			wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=test_sans_destinataire' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=test_sans_destinataire#iam-p-emails' ) );
 			exit;
 		}
 
 		$envoye = IAM_Leads_Emails::tester( $destinataires );
 
-		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=' . ( $envoye ? 'test_envoye' : 'test_echec' ) ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=' . ( $envoye ? 'test_envoye#iam-p-smtp' : 'test_echec#iam-p-journal' ) ) );
 		exit;
 	}
 
@@ -326,7 +327,7 @@ class IAM_Leads_Admin_Menu {
 
 		IAM_Leads_Logger::vider();
 
-		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=journal' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=journal#iam-p-journal' ) );
 		exit;
 	}
 
@@ -377,35 +378,90 @@ class IAM_Leads_Admin_Menu {
 
 		update_option( 'iam_leads_settings', wp_parse_args( $reglages, IAM_Leads::default_settings() ) );
 
-		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=enregistre' ) );
+		// On revient sur l'onglet qui était ouvert.
+		$onglet = sanitize_key( wp_unslash( $_POST['_iam_onglet'] ?? '' ) );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=enregistre' ) . ( $onglet ? '#' . $onglet : '' ) );
 		exit;
 	}
 
 	/**
-	 * En-tête commun des écrans (même gabarit que IAM Certifications) :
-	 * sur-titre, titre, actions à droite.
+	 * En-tête commun des écrans, balisage identique à IAM Certifications
+	 * (iam-adm-head) : sur-titre, titre, intro, actions à droite.
 	 *
 	 * @param string $sur_titre Petit libellé au-dessus du titre.
 	 * @param string $titre     Titre de la page.
 	 * @param string $actions   HTML des boutons d'action (déjà échappé).
 	 * @param string $sous      Ligne descriptive sous le titre (optionnelle).
+	 * @param string $retour    URL : le sur-titre devient un lien retour « ← ».
 	 */
-	public static function entete( $sur_titre, $titre, $actions = '', $sous = '' ) {
+	public static function entete( $sur_titre, $titre, $actions = '', $sous = '', $retour = '' ) {
 		?>
-		<header class="iam-entete">
-			<div class="iam-entete__texte">
-				<p class="iam-entete__sur"><?php echo esc_html( $sur_titre ); ?></p>
-				<h1 class="iam-entete__titre"><?php echo esc_html( $titre ); ?></h1>
+		<header class="iam-adm-head">
+			<div>
+				<p class="iam-adm-eyebrow">
+					<?php if ( $retour ) : ?>
+						<a href="<?php echo esc_url( $retour ); ?>">← <?php echo esc_html( $sur_titre ); ?></a>
+					<?php else : ?>
+						<?php echo esc_html( $sur_titre ); ?>
+					<?php endif; ?>
+				</p>
+				<h1 class="iam-adm-title"><?php echo esc_html( $titre ); ?></h1>
 				<?php if ( $sous ) : ?>
-					<p class="iam-entete__sous"><?php echo esc_html( $sous ); ?></p>
+					<p class="iam-adm-intro"><?php echo wp_kses_post( $sous ); ?></p>
 				<?php endif; ?>
 			</div>
 			<?php if ( $actions ) : ?>
-				<div class="iam-entete__actions"><?php echo $actions; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit et échappé par l'appelant. ?></div>
+				<div class="iam-adm-head__actions"><?php echo $actions; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit et échappé par l'appelant. ?></div>
 			<?php endif; ?>
 		</header>
 		<hr class="wp-header-end">
 		<?php
+	}
+
+	/**
+	 * En-tête d'une section-carte (iam-sec__head) : icône, titre, description
+	 * et, à droite, un contenu libre (interrupteur, lien, bouton).
+	 *
+	 * @param string $icone Classe dashicons sans le préfixe « dashicons- ».
+	 * @param string $titre Titre de la section.
+	 * @param string $desc  Description (optionnelle).
+	 * @param string $aside HTML affiché à droite (déjà échappé).
+	 */
+	public static function sec_tete( $icone, $titre, $desc = '', $aside = '' ) {
+		?>
+		<div class="iam-sec__head">
+			<span class="iam-sec__icon dashicons dashicons-<?php echo esc_attr( $icone ); ?>" aria-hidden="true"></span>
+			<div>
+				<h2 class="iam-sec__title"><?php echo esc_html( $titre ); ?></h2>
+				<?php if ( $desc ) : ?>
+					<p class="iam-sec__desc"><?php echo esc_html( $desc ); ?></p>
+				<?php endif; ?>
+			</div>
+			<?php if ( $aside ) : ?>
+				<div class="iam-sec__aside"><?php echo $aside; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit et échappé par l'appelant. ?></div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Interrupteur (même composant que IAM Certifications).
+	 *
+	 * @param string $nom     Attribut name de la case.
+	 * @param bool   $coche   État.
+	 * @param string $libelle Libellé.
+	 * @param string $aide    Ligne d'aide sous le libellé (optionnelle).
+	 * @return string HTML.
+	 */
+	public static function interrupteur( $nom, $coche, $libelle, $aide = '' ) {
+		return sprintf(
+			'<label class="iam-switch"><input type="checkbox" name="%1$s" value="1"%2$s><span class="iam-switch__track" aria-hidden="true"></span><span>%3$s%4$s</span></label>',
+			esc_attr( $nom ),
+			$coche ? ' checked' : '',
+			esc_html( $libelle ),
+			$aide ? '<small>' . esc_html( $aide ) . '</small>' : ''
+		);
 	}
 
 	/**
@@ -435,8 +491,8 @@ class IAM_Leads_Admin_Menu {
 
 		$erreurs = array(
 			'export_vide'      => __( 'Aucune colonne sélectionnée : l\'export a été annulé.', 'iam-leads' ),
-			'export_echec'     => __( 'Le fichier Excel n\'a pas pu être créé. Le journal des réglages en donne la raison.', 'iam-leads' ),
-			'test_echec'             => __( 'L\'e-mail de test n\'est pas parti. Le journal, en bas de cette page, indique le motif exact renvoyé par le serveur d\'envoi.', 'iam-leads' ),
+			'export_echec'     => __( 'Le fichier Excel n\'a pas pu être créé. Réglages → Journal en donne la raison.', 'iam-leads' ),
+			'test_echec'             => __( 'L\'e-mail de test n\'est pas parti. L\'onglet Journal indique le motif exact renvoyé par le serveur d\'envoi.', 'iam-leads' ),
 			'test_sans_destinataire' => __( 'Aucun destinataire interne n\'est renseigné : il n\'y a personne à qui envoyer le test.', 'iam-leads' ),
 			'champs_tronques'  => __( 'Le serveur n\'a reçu qu\'une partie des champs : la limite PHP « max_input_vars » est trop basse. Rien n\'a été enregistré. Faites-la passer à 5000, puis recommencez. Réglages → Journal indique la valeur actuelle.', 'iam-leads' ),
 			'echec_ecriture'   => __( 'La base de données a refusé l\'enregistrement : rien n\'a été modifié. Réglages → Journal indique l\'erreur SQL exacte.', 'iam-leads' ),
@@ -465,5 +521,30 @@ class IAM_Leads_Admin_Menu {
 				esc_html( $textes[ $message ] )
 			);
 		}
+	}
+}
+
+if ( ! function_exists( 'iam_leads_initiales' ) ) {
+	/**
+	 * Initiales d'un nom pour la pastille (avatar) des listes.
+	 *
+	 * @param string $nom Nom complet.
+	 * @return string Une ou deux lettres, « ? » si le nom est vide.
+	 */
+	function iam_leads_initiales( $nom ) {
+		$mots = preg_split( '/\s+/u', trim( (string) $nom ), -1, PREG_SPLIT_NO_EMPTY );
+
+		if ( ! $mots ) {
+			return '?';
+		}
+
+		$initiales = '';
+		foreach ( array( reset( $mots ), count( $mots ) > 1 ? end( $mots ) : '' ) as $mot ) {
+			if ( '' !== $mot ) {
+				$initiales .= function_exists( 'mb_substr' ) ? mb_substr( $mot, 0, 1 ) : substr( $mot, 0, 1 );
+			}
+		}
+
+		return $initiales;
 	}
 }

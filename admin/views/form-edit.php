@@ -2,6 +2,9 @@
 /**
  * Création / édition d'un formulaire.
  *
+ * Même gabarit que l'assistant de IAM Certifications : sections-cartes à
+ * icône, champs libellés au-dessus, pied collant avec l'enregistrement.
+ *
  * @package IAM_Leads
  *
  * @var object|null $form
@@ -14,28 +17,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 $est_nouveau = ! $form;
 $champs      = $form ? $form->champs : array();
 $plaquette   = $form && $form->plaquette_pdf ? wp_get_attachment_url( $form->plaquette_pdf ) : '';
+$reglages    = $form ? $form->reglages : IAM_Leads_Form_Builder::default_reglages();
+$m           = 'IAM_Leads_Admin_Menu';
+
+$actions = '';
+if ( ! $est_nouveau ) {
+	$actions = sprintf(
+		'<button type="button" class="iam-copiable" title="%1$s">[iam_form id="%2$d"]</button> <a class="iam-adm-btn iam-adm-btn--ghost" href="%3$s"><span class="dashicons dashicons-groups" aria-hidden="true"></span> %4$s</a>',
+		esc_attr__( 'Copier le shortcode', 'iam-leads' ),
+		(int) $form->id,
+		esc_url( admin_url( 'admin.php?page=iam-leads-list&form_id=' . $form->id ) ),
+		esc_html__( 'Voir les leads', 'iam-leads' )
+	);
+}
 ?>
 <div class="wrap iam-wrap">
 	<?php
-	IAM_Leads_Admin_Menu::entete(
+	$m::entete(
 		__( 'Formulaires', 'iam-leads' ),
-		$est_nouveau ? __( 'Créer un formulaire', 'iam-leads' ) : __( 'Modifier le formulaire', 'iam-leads' ),
-		sprintf(
-			'<a href="%1$s" class="button"><span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span> %2$s</a>',
-			esc_url( admin_url( 'admin.php?page=iam-leads-forms' ) ),
-			esc_html__( 'Tous les formulaires', 'iam-leads' )
-		)
+		$est_nouveau ? __( 'Nouveau formulaire', 'iam-leads' ) : $form->nom,
+		$actions,
+		'',
+		admin_url( 'admin.php?page=iam-leads-forms' )
 	);
 	?>
-
-	<?php IAM_Leads_Admin_Menu::notice(); ?>
-
-	<?php if ( ! $est_nouveau ) : ?>
-		<p class="iam-shortcode-rappel">
-			<?php esc_html_e( 'Insérez ce formulaire dans une page avec le shortcode :', 'iam-leads' ); ?>
-			<code>[iam_form id="<?php echo esc_attr( $form->id ); ?>"]</code>
-		</p>
-	<?php endif; ?>
+	<?php $m::notice(); ?>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="iam-form-edit">
 		<input type="hidden" name="action" value="iam_save_form">
@@ -44,156 +50,147 @@ $plaquette   = $form && $form->plaquette_pdf ? wp_get_attachment_url( $form->pla
 		<input type="hidden" name="champs_total" id="iam-champs-total" value="<?php echo esc_attr( count( $champs ) ); ?>">
 		<?php wp_nonce_field( 'iam_save_form' ); ?>
 
-		<div class="iam-colonnes">
-			<div class="iam-colonne-principale">
+		<div class="iam-layout">
+			<div class="iam-layout__main">
 
-				<div class="iam-carte">
-					<h2><?php esc_html_e( 'Champs du formulaire', 'iam-leads' ); ?></h2>
-					<p class="description">
-						<?php esc_html_e( 'Un champ en demi-largeur se place sur deux colonnes en bureau et repasse sur une colonne en mobile.', 'iam-leads' ); ?>
-					</p>
-
-					<div class="notice notice-error iam-champs-alerte" id="iam-champs-alerte" hidden></div>
-
-					<div id="iam-champs-liste">
-						<?php foreach ( $champs as $index => $champ ) : ?>
-							<?php
-							$i = (int) $index;
-							require IAM_LEADS_PATH . 'admin/views/partial-field.php';
-							?>
-						<?php endforeach; ?>
+				<section class="iam-sec">
+					<?php $m::sec_tete( 'id-alt', __( 'Identité', 'iam-leads' ), __( 'Le nom sert à retrouver le formulaire ; il n\'est pas affiché aux visiteurs.', 'iam-leads' ) ); ?>
+					<div class="iam-sec__body">
+						<div class="iam-fields">
+							<div class="iam-field iam-field--full">
+								<label class="iam-field__label" for="iam-nom"><?php esc_html_e( 'Nom du formulaire', 'iam-leads' ); ?> <span class="iam-req">*</span></label>
+								<input type="text" id="iam-nom" name="nom" class="iam-input-xl" required
+									value="<?php echo esc_attr( $form->nom ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Ex. : Demande d\'information — Master', 'iam-leads' ); ?>">
+							</div>
+							<div class="iam-field">
+								<label class="iam-field__label" for="iam-bouton"><?php esc_html_e( 'Texte du bouton d\'envoi', 'iam-leads' ); ?></label>
+								<input type="text" id="iam-bouton" name="bouton_texte" value="<?php echo esc_attr( $form->bouton_texte ?? 'Envoyer ma demande' ); ?>">
+							</div>
+							<div class="iam-field">
+								<label class="iam-field__label" for="iam-programme"><?php esc_html_e( 'Programme associé', 'iam-leads' ); ?></label>
+								<select id="iam-programme" name="programme">
+									<option value=""><?php esc_html_e( '— Aucun —', 'iam-leads' ); ?></option>
+									<?php foreach ( IAM_Leads_Form_Builder::programmes() as $programme ) : ?>
+										<option value="<?php echo esc_attr( $programme ); ?>" <?php selected( $form->programme ?? '', $programme ); ?>><?php echo esc_html( $programme ); ?></option>
+									<?php endforeach; ?>
+								</select>
+								<p class="iam-field__hint"><?php esc_html_e( 'Utilisé quand le formulaire ne demande pas le programme (page d\'un seul programme).', 'iam-leads' ); ?></p>
+							</div>
+						</div>
 					</div>
+				</section>
 
-					<p>
-						<button type="button" class="button button-secondary" id="iam-ajouter-champ">
+				<section class="iam-sec">
+					<?php
+					$m::sec_tete(
+						'forms',
+						__( 'Champs du formulaire', 'iam-leads' ),
+						__( 'Cliquez sur « Ouvrir » pour régler un champ. Deux champs en demi-largeur se placent côte à côte sur ordinateur.', 'iam-leads' ),
+						'<span class="iam-adm-pill iam-adm-pill--neutre" id="iam-champs-compte">' . esc_html( sprintf( _n( '%d champ', '%d champs', count( $champs ), 'iam-leads' ), count( $champs ) ) ) . '</span>'
+					);
+					?>
+					<div class="iam-sec__body">
+						<div class="notice notice-error iam-champs-alerte" id="iam-champs-alerte" hidden></div>
+
+						<div id="iam-champs-liste">
+							<?php foreach ( $champs as $index => $champ ) : ?>
+								<?php
+								$i = (int) $index;
+								require IAM_LEADS_PATH . 'admin/views/partial-field.php';
+								?>
+							<?php endforeach; ?>
+						</div>
+
+						<button type="button" class="iam-ajout-champ" id="iam-ajouter-champ">
+							<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
 							<?php esc_html_e( 'Ajouter un champ', 'iam-leads' ); ?>
 						</button>
-					</p>
-				</div>
+					</div>
+				</section>
 
 			</div>
 
-			<div class="iam-colonne-laterale">
+			<aside class="iam-layout__side">
 
-				<div class="iam-carte">
-					<h2><?php esc_html_e( 'Affichage', 'iam-leads' ); ?></h2>
-
-					<?php $reglages = $form ? $form->reglages : IAM_Leads_Form_Builder::default_reglages(); ?>
-
-					<p>
-						<label for="iam-mode"><strong><?php esc_html_e( 'Mode', 'iam-leads' ); ?></strong></label>
-						<select id="iam-mode" name="reglages[mode_affichage]" class="widefat">
-							<?php foreach ( IAM_Leads_Form_Builder::modes_affichage() as $cle => $libelle ) : ?>
-								<option value="<?php echo esc_attr( $cle ); ?>" <?php selected( $reglages['mode_affichage'], $cle ); ?>>
-									<?php echo esc_html( $libelle ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-						<span class="description">
-							<?php esc_html_e( 'En mode étapes, ajoutez des champs « Séparateur d\'étape » entre les groupes de questions. Sans séparateur, le formulaire reste sur une page.', 'iam-leads' ); ?>
-						</span>
-					</p>
-
-					<div id="iam-reglages-etapes">
-						<p>
-							<label for="iam-progression"><strong><?php esc_html_e( 'Indicateur de progression', 'iam-leads' ); ?></strong></label>
-							<select id="iam-progression" name="reglages[progression]" class="widefat">
-								<?php foreach ( IAM_Leads_Form_Builder::types_progression() as $cle => $libelle ) : ?>
-									<option value="<?php echo esc_attr( $cle ); ?>" <?php selected( $reglages['progression'], $cle ); ?>>
-										<?php echo esc_html( $libelle ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-						</p>
-
-						<div class="iam-grille-2">
-							<p>
-								<label for="iam-bouton-precedent"><strong><?php esc_html_e( 'Bouton retour', 'iam-leads' ); ?></strong></label>
-								<input type="text" id="iam-bouton-precedent" name="reglages[bouton_precedent]" class="widefat"
-									value="<?php echo esc_attr( $reglages['bouton_precedent'] ); ?>">
-							</p>
-							<p>
-								<label for="iam-bouton-suivant"><strong><?php esc_html_e( 'Bouton suivant', 'iam-leads' ); ?></strong></label>
-								<input type="text" id="iam-bouton-suivant" name="reglages[bouton_suivant]" class="widefat"
-									value="<?php echo esc_attr( $reglages['bouton_suivant'] ); ?>">
-							</p>
+				<section class="iam-sec">
+					<?php $m::sec_tete( 'yes-alt', __( 'Après l\'envoi', 'iam-leads' ), __( 'Ce que voit le visiteur une fois sa demande envoyée.', 'iam-leads' ) ); ?>
+					<div class="iam-sec__body">
+						<div class="iam-field">
+							<label class="iam-field__label" for="iam-confirmation"><?php esc_html_e( 'Message de confirmation', 'iam-leads' ); ?></label>
+							<textarea id="iam-confirmation" name="message_confirmation" rows="4"><?php echo esc_textarea( $form->message_confirmation ?? '' ); ?></textarea>
+						</div>
+						<div class="iam-field">
+							<span class="iam-field__label"><?php esc_html_e( 'Plaquette par défaut', 'iam-leads' ); ?></span>
+							<input type="hidden" name="plaquette_pdf" id="iam-plaquette-id" value="<?php echo esc_attr( $form->plaquette_pdf ?? 0 ); ?>">
+							<div class="iam-fichier-ligne">
+								<span id="iam-plaquette-nom" class="iam-fichier"><?php echo $plaquette ? esc_html( basename( $plaquette ) ) : esc_html__( 'Aucun fichier', 'iam-leads' ); ?></span>
+								<button type="button" class="button" id="iam-choisir-plaquette"><?php esc_html_e( 'Choisir un PDF', 'iam-leads' ); ?></button>
+								<button type="button" class="button" id="iam-retirer-plaquette"><?php esc_html_e( 'Retirer', 'iam-leads' ); ?></button>
+							</div>
+							<p class="iam-field__hint"><?php esc_html_e( 'Repli si le programme choisi n\'a pas sa propre plaquette (Réglages → Plaquettes).', 'iam-leads' ); ?></p>
 						</div>
 					</div>
+				</section>
 
-					<hr>
+				<section class="iam-sec">
+					<?php $m::sec_tete( 'admin-appearance', __( 'Affichage', 'iam-leads' ), __( 'Une page ou plusieurs étapes, couleurs du bouton.', 'iam-leads' ) ); ?>
+					<div class="iam-sec__body">
+						<div class="iam-field">
+							<label class="iam-field__label" for="iam-mode"><?php esc_html_e( 'Mode', 'iam-leads' ); ?></label>
+							<select id="iam-mode" name="reglages[mode_affichage]">
+								<?php foreach ( IAM_Leads_Form_Builder::modes_affichage() as $cle => $libelle ) : ?>
+									<option value="<?php echo esc_attr( $cle ); ?>" <?php selected( $reglages['mode_affichage'], $cle ); ?>><?php echo esc_html( $libelle ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<p class="iam-field__hint"><?php esc_html_e( 'En mode étapes, ajoutez des champs « Séparateur d\'étape » entre les groupes de questions.', 'iam-leads' ); ?></p>
+						</div>
 
-					<div class="iam-grille-2">
-						<p>
-							<label for="iam-couleur-bouton"><strong><?php esc_html_e( 'Couleur du bouton', 'iam-leads' ); ?></strong></label>
-							<input type="text" id="iam-couleur-bouton" class="iam-couleur" name="reglages[couleur_bouton]"
-								value="<?php echo esc_attr( $reglages['couleur_bouton'] ); ?>"
-								data-default-color="#1b4b8f">
-						</p>
-						<p>
-							<label for="iam-couleur-bouton-texte"><strong><?php esc_html_e( 'Couleur du texte', 'iam-leads' ); ?></strong></label>
-							<input type="text" id="iam-couleur-bouton-texte" class="iam-couleur" name="reglages[couleur_bouton_texte]"
-								value="<?php echo esc_attr( $reglages['couleur_bouton_texte'] ); ?>"
-								data-default-color="#ffffff">
-						</p>
+						<div id="iam-reglages-etapes" class="iam-fields">
+							<div class="iam-field iam-field--full">
+								<label class="iam-field__label" for="iam-progression"><?php esc_html_e( 'Indicateur de progression', 'iam-leads' ); ?></label>
+								<select id="iam-progression" name="reglages[progression]">
+									<?php foreach ( IAM_Leads_Form_Builder::types_progression() as $cle => $libelle ) : ?>
+										<option value="<?php echo esc_attr( $cle ); ?>" <?php selected( $reglages['progression'], $cle ); ?>><?php echo esc_html( $libelle ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</div>
+							<div class="iam-field">
+								<label class="iam-field__label" for="iam-bouton-precedent"><?php esc_html_e( 'Bouton retour', 'iam-leads' ); ?></label>
+								<input type="text" id="iam-bouton-precedent" name="reglages[bouton_precedent]" value="<?php echo esc_attr( $reglages['bouton_precedent'] ); ?>">
+							</div>
+							<div class="iam-field">
+								<label class="iam-field__label" for="iam-bouton-suivant"><?php esc_html_e( 'Bouton suivant', 'iam-leads' ); ?></label>
+								<input type="text" id="iam-bouton-suivant" name="reglages[bouton_suivant]" value="<?php echo esc_attr( $reglages['bouton_suivant'] ); ?>">
+							</div>
+						</div>
+
+						<div class="iam-fields">
+							<div class="iam-field iam-field--full">
+								<label class="iam-field__label" for="iam-couleur-bouton"><?php esc_html_e( 'Couleur du bouton', 'iam-leads' ); ?></label>
+								<input type="text" id="iam-couleur-bouton" class="iam-couleur" name="reglages[couleur_bouton]"
+									value="<?php echo esc_attr( $reglages['couleur_bouton'] ); ?>" data-default-color="#1b4b8f">
+							</div>
+							<div class="iam-field iam-field--full">
+								<label class="iam-field__label" for="iam-couleur-bouton-texte"><?php esc_html_e( 'Couleur du texte', 'iam-leads' ); ?></label>
+								<input type="text" id="iam-couleur-bouton-texte" class="iam-couleur" name="reglages[couleur_bouton_texte]"
+									value="<?php echo esc_attr( $reglages['couleur_bouton_texte'] ); ?>" data-default-color="#ffffff">
+							</div>
+						</div>
+						<p class="iam-field__hint"><?php esc_html_e( 'Laissez vide (bouton « Effacer ») pour garder les couleurs IAM : bouton or, texte foncé.', 'iam-leads' ); ?></p>
 					</div>
-					<p class="description">
-						<?php esc_html_e( 'S\'applique au bouton d\'envoi et au bouton « Continuer ». Laissez vide, ou cliquez sur « Effacer », pour garder les couleurs IAM (bouton or, texte foncé).', 'iam-leads' ); ?>
-					</p>
-				</div>
+				</section>
 
-				<div class="iam-carte">
-					<h2><?php esc_html_e( 'Réglages du formulaire', 'iam-leads' ); ?></h2>
+			</aside>
+		</div>
 
-					<p>
-						<label for="iam-nom"><strong><?php esc_html_e( 'Nom du formulaire', 'iam-leads' ); ?></strong></label>
-						<input type="text" id="iam-nom" name="nom" class="widefat" required
-							value="<?php echo esc_attr( $form->nom ?? '' ); ?>">
-					</p>
-
-					<p>
-						<label for="iam-bouton"><strong><?php esc_html_e( 'Texte du bouton', 'iam-leads' ); ?></strong></label>
-						<input type="text" id="iam-bouton" name="bouton_texte" class="widefat"
-							value="<?php echo esc_attr( $form->bouton_texte ?? 'Envoyer ma demande' ); ?>">
-					</p>
-
-					<p>
-						<label for="iam-confirmation"><strong><?php esc_html_e( 'Message de confirmation', 'iam-leads' ); ?></strong></label>
-						<textarea id="iam-confirmation" name="message_confirmation" class="widefat" rows="4"><?php echo esc_textarea( $form->message_confirmation ?? '' ); ?></textarea>
-					</p>
-
-					<p>
-						<label for="iam-programme"><strong><?php esc_html_e( 'Programme associé', 'iam-leads' ); ?></strong></label>
-						<select id="iam-programme" name="programme" class="widefat">
-							<option value=""><?php esc_html_e( '— Aucun —', 'iam-leads' ); ?></option>
-							<?php foreach ( IAM_Leads_Form_Builder::programmes() as $programme ) : ?>
-								<option value="<?php echo esc_attr( $programme ); ?>" <?php selected( $form->programme ?? '', $programme ); ?>>
-									<?php echo esc_html( $programme ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-						<span class="description">
-							<?php esc_html_e( 'Utilisé quand le formulaire ne demande pas le programme (page dédiée à un seul programme).', 'iam-leads' ); ?>
-						</span>
-					</p>
-
-					<p>
-						<strong><?php esc_html_e( 'Plaquette par défaut', 'iam-leads' ); ?></strong><br>
-						<input type="hidden" name="plaquette_pdf" id="iam-plaquette-id" value="<?php echo esc_attr( $form->plaquette_pdf ?? 0 ); ?>">
-						<span id="iam-plaquette-nom" class="iam-fichier"><?php echo $plaquette ? esc_html( basename( $plaquette ) ) : esc_html__( 'Aucun fichier', 'iam-leads' ); ?></span><br>
-						<button type="button" class="button" id="iam-choisir-plaquette"><?php esc_html_e( 'Choisir un PDF', 'iam-leads' ); ?></button>
-						<button type="button" class="button" id="iam-retirer-plaquette"><?php esc_html_e( 'Retirer', 'iam-leads' ); ?></button>
-						<span class="description">
-							<?php esc_html_e( 'Une plaquette par programme se règle dans Réglages ; celle-ci sert de repli.', 'iam-leads' ); ?>
-						</span>
-					</p>
-
-					<p>
-						<button type="submit" class="button button-primary button-large">
-							<?php esc_html_e( 'Enregistrer le formulaire', 'iam-leads' ); ?>
-						</button>
-					</p>
-				</div>
-
+		<div class="iam-wiz-foot">
+			<p class="iam-wiz-foot__hint"><?php esc_html_e( 'Les champs marqués * sont requis. Rien n\'est enregistré tant que vous n\'avez pas cliqué sur Enregistrer.', 'iam-leads' ); ?></p>
+			<div class="iam-wiz-foot__right">
+				<a class="iam-adm-btn iam-adm-btn--ghost" href="<?php echo esc_url( admin_url( 'admin.php?page=iam-leads-forms' ) ); ?>"><?php esc_html_e( 'Annuler', 'iam-leads' ); ?></a>
+				<button type="submit" class="iam-adm-btn">
+					<span class="dashicons dashicons-saved" aria-hidden="true"></span>
+					<?php esc_html_e( 'Enregistrer le formulaire', 'iam-leads' ); ?>
+				</button>
 			</div>
 		</div>
 	</form>

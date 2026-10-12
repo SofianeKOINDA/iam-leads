@@ -73,7 +73,7 @@
 
 	/* ── Sparklines : SVG inline, pas d'instance Chart.js ───────── */
 
-	function sparkline( svg, points, couleur ) {
+	function sparkline( svg, points, couleur, fond ) {
 		var w = +svg.getAttribute( 'width' );
 		var h = +svg.getAttribute( 'height' );
 		var pad = 3;
@@ -109,7 +109,7 @@
 			// Anneau 2px en couleur de surface sur le point courant.
 			'<circle cx="' + x( points.length - 1 ).toFixed( 1 ) + '" ' +
 				'cy="' + y( points[ points.length - 1 ] ).toFixed( 1 ) + '" r="2.8" ' +
-				'fill="' + couleur + '" stroke="' + C.surface + '" stroke-width="2"/>';
+				'fill="' + couleur + '" stroke="' + ( fond || C.surface ) + '" stroke-width="2"/>';
 	}
 
 	var SPARKS = {
@@ -119,7 +119,10 @@
 	};
 
 	Array.prototype.forEach.call( document.querySelectorAll( '.iam-sparkline' ), function ( svg ) {
-		sparkline( svg, SPARKS[ svg.getAttribute( 'data-spark' ) ], C.serie );
+		// Sur la carte héros (fond vert), le tracé passe en blanc.
+		var heros = svg.closest( '.iam-kpi--hero' );
+
+		sparkline( svg, SPARKS[ svg.getAttribute( 'data-spark' ) ], heros ? '#ffffff' : C.serie, heros ? C.serie : C.surface );
 	} );
 
 	/* ── Étiquettes de valeur au bout des barres ────────────────────
@@ -173,39 +176,43 @@
 			return;
 		}
 
+		/*
+		 * Des barres plutôt qu'une courbe : avec des volumes faibles
+		 * (0, 1, 2 leads par jour), une courbe lissée dessinait des dents
+		 * de scie illisibles. La période précédente reste en pointillés.
+		 */
 		var jeux = [ {
+			type: 'bar',
 			label: i18n.leads || 'Leads',
 			data: jeu.valeurs,
-			borderColor: C.serie,
-			backgroundColor: C.wash,
-			borderWidth: 2,
-			fill: true,
-			tension: .32,
-			pointRadius: 0,
-			pointHoverRadius: 5,
-			pointHoverBackgroundColor: C.serie,
-			pointHoverBorderColor: C.surface,
-			pointHoverBorderWidth: 2,
-			order: 1
+			backgroundColor: C.serie,
+			hoverBackgroundColor: '#0e7049',
+			borderRadius: 4,
+			borderSkipped: 'bottom',
+			maxBarThickness: 22,
+			categoryPercentage: .8,
+			barPercentage: .85,
+			order: 2
 		} ];
 
 		if ( data.temporelle_prec && data.temporelle_prec.length ) {
 			jeux.push( {
+				type: 'line',
 				label: i18n.precedente || 'Période précédente',
 				data: data.temporelle_prec,
-				borderColor: C.deemph,
+				borderColor: '#b8bec6',
 				borderWidth: 1.5,
 				borderDash: [ 4, 4 ],
 				pointRadius: 0,
 				pointHoverRadius: 0,
 				fill: false,
-				tension: .32,
-				order: 2
+				stepped: 'middle',
+				order: 1
 			} );
 		}
 
 		new Chart( canvas, {
-			type: 'line',
+			type: 'bar',
 			data: {
 				labels: libellesTemps( jeu.labels, ( data.bornes || {} ).granularite ),
 				datasets: jeux
@@ -302,7 +309,17 @@
 					y: {
 						border: { color: C.axe },
 						grid: { display: false },
-						ticks: { padding: 8, color: C.ink2, font: { size: 12 } }
+						ticks: {
+							padding: 8,
+							color: C.ink2,
+							font: { size: 12 },
+							// Libellés longs (intitulés de programmes) abrégés : le
+							// détail reste dans l'infobulle et la vue tableau.
+							callback: function ( valeur ) {
+								var texte = String( this.getLabelForValue( valeur ) );
+								return texte.length > 30 ? texte.slice( 0, 28 ) + '…' : texte;
+							}
+						}
 					}
 				}
 			},
@@ -335,8 +352,13 @@
 		}
 
 		if ( ! jeu || ! jeu.valeurs || ! jeu.valeurs.length ) {
-			vide( barre.parentNode.querySelector( '.iam-barre-part' ) ? barre : barre );
-			legende.remove();
+			// Pas de barre grise vide : seul le message reste.
+			var message = document.createElement( 'p' );
+
+			message.className = 'iam-graph-vide';
+			message.textContent = i18n.vide || 'Pas encore de données sur cette période.';
+			barre.hidden = true;
+			legende.replaceWith( message );
 			return;
 		}
 
