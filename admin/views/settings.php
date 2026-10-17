@@ -64,9 +64,9 @@ $m = 'IAM_Leads_Admin_Menu';
 			<div class="iam-sec__body">
 				<div class="iam-fields">
 					<div class="iam-field iam-field--full">
-						<label class="iam-field__label" for="admin_emails"><?php esc_html_e( 'Destinataires internes', 'iam-leads' ); ?></label>
+						<label class="iam-field__label" for="admin_emails"><?php esc_html_e( 'Destinataires par défaut', 'iam-leads' ); ?></label>
 						<input type="text" id="admin_emails" name="admin_emails" value="<?php echo esc_attr( $reglages['admin_emails'] ); ?>">
-						<p class="iam-field__hint"><?php esc_html_e( 'Séparez plusieurs adresses par des virgules. Ex. : info@groupeiam.com, registrariat@groupeiam.com', 'iam-leads' ); ?></p>
+						<p class="iam-field__hint"><?php esc_html_e( 'Prévenus pour les formulaires qui n\'ont pas leurs propres destinataires (Formulaires → Modifier → Qui reçoit les leads). Plusieurs adresses : séparez-les par des virgules.', 'iam-leads' ); ?></p>
 					</div>
 					<div class="iam-field">
 						<label class="iam-field__label" for="email_expediteur_nom"><?php esc_html_e( 'Nom de l\'expéditeur', 'iam-leads' ); ?></label>
@@ -108,7 +108,7 @@ $m = 'IAM_Leads_Admin_Menu';
 				<div class="iam-fields">
 					<div class="iam-field">
 						<label class="iam-field__label" for="smtp_hote"><?php esc_html_e( 'Serveur', 'iam-leads' ); ?></label>
-						<input type="text" id="smtp_hote" name="smtp_hote" value="<?php echo esc_attr( $reglages['smtp_hote'] ); ?>" placeholder="mail.groupeiam.com">
+						<input type="text" id="smtp_hote" name="smtp_hote" value="<?php echo esc_attr( $reglages['smtp_hote'] ); ?>" placeholder="smtp.gmail.com">
 					</div>
 					<div class="iam-field">
 						<label class="iam-field__label" for="smtp_port"><?php esc_html_e( 'Port et chiffrement', 'iam-leads' ); ?></label>
@@ -120,10 +120,11 @@ $m = 'IAM_Leads_Admin_Menu';
 								<option value="aucune" <?php selected( $reglages['smtp_securite'], 'aucune' ); ?>><?php esc_html_e( 'Aucun chiffrement (port 25)', 'iam-leads' ); ?></option>
 							</select>
 						</div>
+						<p class="iam-field__hint"><?php esc_html_e( 'Le port et le chiffrement vont ensemble : 587 + STARTTLS, ou 465 + SSL/TLS.', 'iam-leads' ); ?></p>
 					</div>
 					<div class="iam-field">
 						<label class="iam-field__label" for="smtp_utilisateur"><?php esc_html_e( 'Identifiant', 'iam-leads' ); ?></label>
-						<input type="text" id="smtp_utilisateur" name="smtp_utilisateur" value="<?php echo esc_attr( $reglages['smtp_utilisateur'] ); ?>" autocomplete="off" placeholder="info@groupeiam.com">
+						<input type="text" id="smtp_utilisateur" name="smtp_utilisateur" value="<?php echo esc_attr( $reglages['smtp_utilisateur'] ); ?>" autocomplete="off" placeholder="communications@groupeiam.com">
 						<p class="iam-field__hint"><?php esc_html_e( 'Le plus souvent l\'adresse complète. Vide = envoi sans authentification.', 'iam-leads' ); ?></p>
 					</div>
 					<div class="iam-field">
@@ -136,7 +137,7 @@ $m = 'IAM_Leads_Admin_Menu';
 						<?php else : ?>
 							<input type="password" id="smtp_motdepasse" name="smtp_motdepasse" value="" autocomplete="new-password"
 								placeholder="<?php echo $reglages['smtp_motdepasse'] ? esc_attr__( '•••••••• (enregistré)', 'iam-leads' ) : ''; ?>">
-							<p class="iam-field__hint"><?php esc_html_e( 'Laissez vide pour garder le mot de passe actuel. Pour le sortir de la base : constante IAM_LEADS_SMTP_PASS dans wp-config.php.', 'iam-leads' ); ?></p>
+							<p class="iam-field__hint"><?php esc_html_e( 'Laissez vide pour garder le mot de passe actuel. Gmail / Google Workspace : un mot de passe d\'application (16 lettres), pas le mot de passe du compte.', 'iam-leads' ); ?></p>
 						<?php endif; ?>
 					</div>
 				</div>
@@ -146,7 +147,7 @@ $m = 'IAM_Leads_Admin_Menu';
 					<span class="dashicons dashicons-email" aria-hidden="true"></span>
 					<?php esc_html_e( 'Envoyer un e-mail de test', 'iam-leads' ); ?>
 				</a>
-				<span><?php esc_html_e( 'Enregistrez d\'abord. Le test part vers les destinataires internes ; le résultat s\'inscrit dans le journal.', 'iam-leads' ); ?></span>
+				<span><?php esc_html_e( 'Enregistrez d\'abord. Le test part vers les destinataires par défaut ; en cas d\'échec, la réponse exacte du serveur s\'inscrit dans le journal.', 'iam-leads' ); ?></span>
 			</div>
 		</section>
 
@@ -176,33 +177,111 @@ $m = 'IAM_Leads_Admin_Menu';
 		</section>
 
 		<!-- CRM ----------------------------------------------------------- -->
+		<?php
+		$crm_choisi = $reglages['crm_fournisseur'] ?? 'iam_crm';
+		$crm_test   = (array) get_option( 'iam_leads_crm_test', array() );
+		$crm_etats  = IAM_Leads_CRM_Integration::compteurs();
+		$crm_icones = array(
+			'iam_crm' => 'building',
+			'hubspot' => 'networking',
+		);
+		$crm_aides  = array(
+			'iam_crm' => __( 'Le CRM interne du Groupe IAM.', 'iam-leads' ),
+			'hubspot' => __( 'Un compte HubSpot (application privée).', 'iam-leads' ),
+		);
+		if ( empty( $crm_test ) ) {
+			$crm_pastille = '<span class="iam-adm-pill iam-adm-pill--neutre">' . esc_html__( 'Connexion non testée', 'iam-leads' ) . '</span>';
+		} elseif ( ! empty( $crm_test['ok'] ) ) {
+			$crm_pastille = '<span class="iam-badge iam-badge-succes">' . esc_html__( 'Connecté', 'iam-leads' ) . '</span>';
+		} else {
+			$crm_pastille = '<span class="iam-badge iam-badge-echec">' . esc_html__( 'Échec de connexion', 'iam-leads' ) . '</span>';
+		}
+		?>
 		<section class="iam-sec" id="iam-p-crm" role="tabpanel" aria-labelledby="iam-p-crm-tab">
 			<?php
 			$m::sec_tete(
 				'database',
-				__( 'Intégration CRM', 'iam-leads' ),
-				__( 'Chaque lead est envoyé au CRM dès sa réception.', 'iam-leads' ),
-				$m::interrupteur( 'crm_active', (bool) $reglages['crm_active'], __( 'Activé', 'iam-leads' ) )
+				__( 'Connexion au CRM', 'iam-leads' ),
+				__( 'Chaque lead est envoyé au CRM dès sa réception. Une personne déjà connue du CRM n\'est jamais dupliquée.', 'iam-leads' ),
+				$crm_pastille . $m::interrupteur( 'crm_active', (bool) $reglages['crm_active'], __( 'Activé', 'iam-leads' ) )
 			);
 			?>
-			<div class="iam-sec__body">
-				<div class="iam-fields">
+			<div class="iam-sec__body" data-iam-crm>
+
+				<fieldset class="iam-options">
+					<legend class="iam-field__label"><?php esc_html_e( 'CRM utilisé', 'iam-leads' ); ?></legend>
+					<?php foreach ( IAM_Leads_CRM_Integration::fournisseurs() as $fournisseur ) : ?>
+						<label class="iam-options__carte">
+							<input type="radio" name="crm_fournisseur" value="<?php echo esc_attr( $fournisseur->id() ); ?>" <?php checked( $crm_choisi, $fournisseur->id() ); ?>>
+							<span class="dashicons dashicons-<?php echo esc_attr( $crm_icones[ $fournisseur->id() ] ?? 'database' ); ?>" aria-hidden="true"></span>
+							<strong><?php echo esc_html( $fournisseur->nom() ); ?></strong>
+							<small><?php echo esc_html( $crm_aides[ $fournisseur->id() ] ?? '' ); ?></small>
+						</label>
+					<?php endforeach; ?>
+				</fieldset>
+
+				<div class="iam-fields" data-crm-pour="iam_crm">
 					<div class="iam-field">
-						<label class="iam-field__label" for="crm_fournisseur"><?php esc_html_e( 'Fournisseur', 'iam-leads' ); ?></label>
-						<select id="crm_fournisseur" name="crm_fournisseur">
-							<?php foreach ( IAM_Leads_CRM_Integration::fournisseurs() as $fournisseur ) : ?>
-								<option value="<?php echo esc_attr( $fournisseur->id() ); ?>" <?php selected( $reglages['crm_fournisseur'], $fournisseur->id() ); ?>>
-									<?php echo esc_html( $fournisseur->nom() ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
+						<label class="iam-field__label" for="iam_crm_url"><?php esc_html_e( 'Adresse du CRM', 'iam-leads' ); ?></label>
+						<input type="url" id="iam_crm_url" name="iam_crm_url" placeholder="https://crm.groupeiam.com" value="<?php echo esc_attr( $reglages['iam_crm_url'] ?? '' ); ?>">
+						<p class="iam-field__hint">
+							<?php if ( IAM_Leads_CRM_IamCrm::endpoint() ) : ?>
+								<?php esc_html_e( 'Les leads partent vers :', 'iam-leads' ); ?> <code><?php echo esc_html( IAM_Leads_CRM_IamCrm::endpoint() ); ?></code>
+							<?php else : ?>
+								<?php esc_html_e( 'L\'adresse du CRM, sans chemin : /api/integrations/iam-leads est ajouté automatiquement.', 'iam-leads' ); ?>
+							<?php endif; ?>
+						</p>
 					</div>
 					<div class="iam-field">
+						<label class="iam-field__label" for="iam_crm_token"><?php esc_html_e( 'Clé API', 'iam-leads' ); ?></label>
+						<input type="password" id="iam_crm_token" name="iam_crm_token" autocomplete="new-password" placeholder="<?php echo ! empty( $reglages['iam_crm_token'] ) ? esc_attr__( '•••••••• (enregistrée)', 'iam-leads' ) : ''; ?>" value="">
+						<p class="iam-field__hint"><?php esc_html_e( 'La valeur de IAM_LEADS_API_KEY sur le serveur du CRM. Laissez vide pour garder la clé enregistrée.', 'iam-leads' ); ?></p>
+					</div>
+				</div>
+
+				<div class="iam-fields" data-crm-pour="hubspot">
+					<div class="iam-field iam-field--full">
 						<label class="iam-field__label" for="hubspot_token"><?php esc_html_e( 'Jeton HubSpot', 'iam-leads' ); ?></label>
 						<input type="password" id="hubspot_token" name="hubspot_token" autocomplete="new-password" value="<?php echo esc_attr( $reglages['hubspot_token'] ); ?>">
 						<p class="iam-field__hint"><?php esc_html_e( 'Private App Token avec le droit crm.objects.contacts.write.', 'iam-leads' ); ?></p>
 					</div>
 				</div>
+
+				<?php if ( ! empty( $crm_test ) ) : ?>
+					<p class="iam-crm-test <?php echo ! empty( $crm_test['ok'] ) ? 'is-ok' : 'is-ko'; ?>">
+						<span class="dashicons dashicons-<?php echo ! empty( $crm_test['ok'] ) ? 'yes-alt' : 'warning'; ?>" aria-hidden="true"></span>
+						<span>
+							<strong><?php echo esc_html( $crm_test['message'] ?? '' ); ?></strong>
+							<small>
+								<?php
+								printf(
+									/* translators: 1 : CRM, 2 : date */
+									esc_html__( 'Dernier test (%1$s) le %2$s', 'iam-leads' ),
+									esc_html( $crm_test['fournisseur'] ?? '' ),
+									esc_html( mysql2date( 'd/m/Y à H:i', $crm_test['date'] ?? '' ) )
+								);
+								?>
+							</small>
+						</span>
+					</p>
+				<?php endif; ?>
+
+				<ul class="iam-crm-etats">
+					<li><b><?php echo esc_html( number_format_i18n( $crm_etats['envoye'] ) ); ?></b> <?php esc_html_e( 'leads synchronisés', 'iam-leads' ); ?></li>
+					<li><b><?php echo esc_html( number_format_i18n( $crm_etats['en_attente'] ) ); ?></b> <?php esc_html_e( 'en attente', 'iam-leads' ); ?></li>
+					<li class="<?php echo $crm_etats['echec'] ? 'is-ko' : ''; ?>"><b><?php echo esc_html( number_format_i18n( $crm_etats['echec'] ) ); ?></b> <?php esc_html_e( 'en échec', 'iam-leads' ); ?></li>
+				</ul>
+			</div>
+			<div class="iam-sec__foot">
+				<a class="iam-adm-btn iam-adm-btn--sm" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=iam_test_crm' ), 'iam_test_crm' ) ); ?>">
+					<span class="dashicons dashicons-yes" aria-hidden="true"></span>
+					<?php esc_html_e( 'Tester la connexion', 'iam-leads' ); ?>
+				</a>
+				<a class="iam-adm-btn iam-adm-btn--ghost iam-adm-btn--sm" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=iam_sync_crm' ), 'iam_sync_crm' ) ); ?>">
+					<span class="dashicons dashicons-update" aria-hidden="true"></span>
+					<?php esc_html_e( 'Envoyer les leads existants', 'iam-leads' ); ?>
+				</a>
+				<span><?php esc_html_e( 'Enregistrez d\'abord. Le test ne crée aucun prospect ; l\'envoi des leads existants ne crée jamais de doublon.', 'iam-leads' ); ?></span>
 			</div>
 		</section>
 

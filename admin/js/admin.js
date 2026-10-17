@@ -92,4 +92,18 @@
 
 		activer( depart, false );
 	} );
+
+	// CRM : seuls les champs du CRM choisi sont affichés.
+	Array.prototype.forEach.call( document.querySelectorAll( '[data-iam-crm]' ), function ( bloc ) {
+		function basculer() {
+			var choisi = bloc.querySelector( 'input[name="crm_fournisseur"]:checked' );
+
+			Array.prototype.forEach.call( bloc.querySelectorAll( '[data-crm-pour]' ), function ( champs ) {
+				champs.hidden = !! choisi && champs.getAttribute( 'data-crm-pour' ) !== choisi.value;
+			} );
+		}
+
+		bloc.addEventListener( 'change', basculer );
+		basculer();
+	} );
 }() );

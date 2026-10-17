@@ -21,6 +21,8 @@ class IAM_Leads_Admin_Menu {
 		add_action( 'admin_post_iam_delete_lead', array( $this, 'supprimer_lead' ) );
 		add_action( 'admin_post_iam_clear_log', array( $this, 'vider_journal' ) );
 		add_action( 'admin_post_iam_test_email', array( $this, 'tester_email' ) );
+		add_action( 'admin_post_iam_sync_crm', array( $this, 'synchroniser_crm' ) );
+		add_action( 'admin_post_iam_test_crm', array( $this, 'tester_crm' ) );
 	}
 
 	/**
@@ -322,6 +324,35 @@ class IAM_Leads_Admin_Menu {
 		exit;
 	}
 
+	/**
+	 * Teste la connexion au CRM (aucun prospect créé).
+	 */
+	public function tester_crm() {
+		$this->verifier( 'iam_test_crm' );
+
+		$resultat = IAM_Leads_CRM_Integration::tester();
+
+		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=' . ( $resultat['ok'] ? 'crm_ok' : 'crm_ko' ) . '#iam-p-crm' ) );
+		exit;
+	}
+
+	/**
+	 * Envoie au CRM les leads déjà collectés qui n'y sont pas encore.
+	 */
+	public function synchroniser_crm() {
+		$this->verifier( 'iam_sync_crm' );
+
+		if ( ! IAM_Leads::get_setting( 'crm_active' ) ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=crm_inactif#iam-p-crm' ) );
+			exit;
+		}
+
+		IAM_Leads_CRM_Integration::demarrer_synchronisation();
+
+		wp_safe_redirect( admin_url( 'admin.php?page=iam-leads-settings&message=crm_sync#iam-p-journal' ) );
+		exit;
+	}
+
 	public function vider_journal() {
 		$this->verifier( 'iam_clear_log' );
 
@@ -362,7 +393,12 @@ class IAM_Leads_Admin_Menu {
 			'privacy_url'            => esc_url_raw( wp_unslash( $_POST['privacy_url'] ?? '' ) ),
 			'plaquettes'             => $plaquettes,
 			'crm_active'             => empty( $_POST['crm_active'] ) ? 0 : 1,
-			'crm_fournisseur'        => sanitize_key( $_POST['crm_fournisseur'] ?? 'hubspot' ),
+			'crm_fournisseur'        => sanitize_key( $_POST['crm_fournisseur'] ?? 'iam_crm' ),
+			'iam_crm_url'            => esc_url_raw( wp_unslash( $_POST['iam_crm_url'] ?? '' ) ),
+			// Comme le mot de passe SMTP : vide = on garde la clé déjà enregistrée, jamais réaffichée.
+			'iam_crm_token'          => '' !== ( $_POST['iam_crm_token'] ?? '' )
+				? sanitize_text_field( wp_unslash( $_POST['iam_crm_token'] ) )
+				: (string) IAM_Leads::get_setting( 'iam_crm_token' ),
 			'hubspot_token'          => sanitize_text_field( wp_unslash( $_POST['hubspot_token'] ?? '' ) ),
 			'whatsapp_active'        => empty( $_POST['whatsapp_active'] ) ? 0 : 1,
 			'whatsapp_fournisseur'   => sanitize_key( $_POST['whatsapp_fournisseur'] ?? 'meta' ),
@@ -493,6 +529,8 @@ class IAM_Leads_Admin_Menu {
 			'export_vide'      => __( 'Aucune colonne sélectionnée : l\'export a été annulé.', 'iam-leads' ),
 			'export_echec'     => __( 'Le fichier Excel n\'a pas pu être créé. Réglages → Journal en donne la raison.', 'iam-leads' ),
 			'test_echec'             => __( 'L\'e-mail de test n\'est pas parti. L\'onglet Journal indique le motif exact renvoyé par le serveur d\'envoi.', 'iam-leads' ),
+			'crm_ko'                 => __( 'La connexion au CRM a échoué : le motif est affiché dans l\'onglet CRM.', 'iam-leads' ),
+			'crm_inactif'            => __( 'Activez d\'abord l\'intégration CRM et enregistrez les réglages.', 'iam-leads' ),
 			'test_sans_destinataire' => __( 'Aucun destinataire interne n\'est renseigné : il n\'y a personne à qui envoyer le test.', 'iam-leads' ),
 			'champs_tronques'  => __( 'Le serveur n\'a reçu qu\'une partie des champs : la limite PHP « max_input_vars » est trop basse. Rien n\'a été enregistré. Faites-la passer à 5000, puis recommencez. Réglages → Journal indique la valeur actuelle.', 'iam-leads' ),
 			'echec_ecriture'   => __( 'La base de données a refusé l\'enregistrement : rien n\'a été modifié. Réglages → Journal indique l\'erreur SQL exacte.', 'iam-leads' ),
@@ -512,6 +550,8 @@ class IAM_Leads_Admin_Menu {
 			'supprime'   => __( 'Élément supprimé.', 'iam-leads' ),
 			'maj'        => __( 'Lead mis à jour.', 'iam-leads' ),
 			'journal'     => __( 'Journal vidé.', 'iam-leads' ),
+			'crm_ok'      => __( 'Connexion au CRM réussie.', 'iam-leads' ),
+			'crm_sync'    => __( 'Synchronisation lancée : un premier lot est parti, les suivants partent automatiquement toutes les 10 secondes. Le journal suit l\'avancement.', 'iam-leads' ),
 			'test_envoye' => __( 'E-mail de test expédié. S\'il n\'arrive pas, vérifiez le dossier indésirables puis les enregistrements SPF/DKIM du domaine expéditeur.', 'iam-leads' ),
 		);
 

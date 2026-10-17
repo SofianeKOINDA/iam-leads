@@ -113,6 +113,34 @@ if ( ! $est_nouveau ) {
 			<aside class="iam-layout__side">
 
 				<section class="iam-sec">
+					<?php
+					$par_defaut = IAM_Leads_Form_Builder::adresses( IAM_Leads::get_setting( 'admin_emails' ) );
+					$m::sec_tete( 'email-alt', __( 'Qui reçoit les leads', 'iam-leads' ), __( 'Personnes prévenues par e-mail à chaque demande reçue par ce formulaire.', 'iam-leads' ) );
+					?>
+					<div class="iam-sec__body">
+						<div class="iam-field">
+							<label class="iam-field__label" for="iam-destinataires"><?php esc_html_e( 'Destinataires de ce formulaire', 'iam-leads' ); ?></label>
+							<textarea id="iam-destinataires" name="reglages[destinataires]" rows="2" placeholder="banel@groupeiam.com"><?php echo esc_textarea( str_replace( ', ', "\n", (string) ( $reglages['destinataires'] ?? '' ) ) ); ?></textarea>
+							<p class="iam-field__hint">
+								<?php esc_html_e( 'Une adresse par ligne (ou séparées par des virgules).', 'iam-leads' ); ?>
+								<?php if ( $par_defaut ) : ?>
+									<?php
+									printf(
+										/* translators: %s : adresses par défaut */
+										esc_html__( 'Laissé vide : les destinataires par défaut (%s).', 'iam-leads' ),
+										esc_html( implode( ', ', $par_defaut ) )
+									);
+									?>
+								<?php else : ?>
+									<?php esc_html_e( 'Laissé vide : les destinataires par défaut de Réglages → E-mails (aucun pour l\'instant).', 'iam-leads' ); ?>
+								<?php endif; ?>
+							</p>
+						</div>
+						<?php echo $m::interrupteur( 'reglages[copie_defaut]', ! empty( $reglages['copie_defaut'] ), __( 'Prévenir aussi les destinataires par défaut', 'iam-leads' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</div>
+				</section>
+
+				<section class="iam-sec">
 					<?php $m::sec_tete( 'yes-alt', __( 'Après l\'envoi', 'iam-leads' ), __( 'Ce que voit le visiteur une fois sa demande envoyée.', 'iam-leads' ) ); ?>
 					<div class="iam-sec__body">
 						<div class="iam-field">

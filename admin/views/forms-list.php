@@ -98,6 +98,16 @@ $url_nouveau = admin_url( 'admin.php?page=iam-leads-forms&action=new' );
 							}
 							?>
 						</span>
+						<span title="<?php esc_attr_e( 'Destinataires des notifications', 'iam-leads' ); ?>">
+							<span class="dashicons dashicons-email-alt" aria-hidden="true" style="font-size:14px;width:14px;height:14px;vertical-align:-2px;"></span>
+							<?php
+							$dest = IAM_Leads_Emails::destinataires( $form );
+							echo esc_html( $dest ? implode( ', ', $dest ) : __( 'aucun destinataire', 'iam-leads' ) );
+							if ( empty( $form->reglages['destinataires'] ) && $dest ) {
+								echo ' <em>(' . esc_html__( 'par défaut', 'iam-leads' ) . ')</em>';
+							}
+							?>
+						</span>
 						<button type="button" class="iam-copiable" title="<?php esc_attr_e( 'Copier le shortcode', 'iam-leads' ); ?>">[iam_form id="<?php echo esc_attr( $form->id ); ?>"]</button>
 					</p>
 				</div>

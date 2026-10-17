@@ -3,7 +3,7 @@
  * Plugin Name:       IAM Leads
  * Plugin URI:        https://groupeiam.com
  * Description:       Système de génération et de gestion de leads pour le Groupe IAM : constructeur de formulaires, capture UTM, téléchargement de plaquette, tableau de bord, CRM et notifications WhatsApp.
- * Version:           1.7.0
+ * Version:           1.8.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Update URI:        https://github.com/SofianeKOINDA/iam-leads
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IAM_LEADS_VERSION', '1.7.0' );
+define( 'IAM_LEADS_VERSION', '1.8.0' );
 define( 'IAM_LEADS_FILE', __FILE__ );
 define( 'IAM_LEADS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'IAM_LEADS_URL', plugin_dir_url( __FILE__ ) );

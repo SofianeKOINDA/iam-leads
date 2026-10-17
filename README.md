@@ -2,7 +2,7 @@
 
 Plugin WordPress de génération et de gestion de leads pour le Groupe IAM.
 
-- **Version** : 1.5.1
+- **Version** : 1.8.0
 - **Prérequis** : WordPress 6.0+, PHP 8.0+
 - **Contexte** : thème Univet (RSTheme), builder Elementor, stack Docker + Nginx + WordPress FPM + MySQL 8.0
 
@@ -248,6 +248,29 @@ est tracé dans **Réglages → Journal**, avec le motif exact renvoyé par le s
 d'échec. Un envoi qui part mais n'arrive pas relève alors du domaine expéditeur : vérifier
 les enregistrements SPF et DKIM.
 
+### IAM CRM (CRM interne)
+
+**Réglages → CRM** : cocher « Activer », choisir **IAM CRM**, renseigner l'adresse du CRM
+(ex. `https://crm.groupeiam.com`) et sa clé API (`IAM_LEADS_API_KEY` dans le `.env` du CRM).
+La clé n'est jamais réaffichée : laisser le champ vide pour conserver celle enregistrée.
+
+Chaque lead part vers `POST /api/integrations/iam-leads` dès sa réception, avec les libellés
+tels que saisis. C'est le CRM qui les traduit : programme, source « Comment avez-vous connu
+l'IAM ? », niveau d'études, pays (qui sert aussi à lire les numéros locaux), moyen de contact.
+L'envoi est idempotent sur l'identifiant du lead : la nouvelle tentative automatique ne crée
+jamais de doublon. Une personne déjà connue du CRM (même téléphone ou e-mail) n'est pas
+recréée : sa fiche reçoit une note « Nouvelle demande via le site ».
+
+**Bouton « Tester la connexion »** : vérifie l'adresse et la clé sans créer de prospect
+(le CRM répond 422 à une requête vide une fois la clé acceptée, 401 si elle est refusée).
+
+**Bouton « Envoyer les leads existants au CRM »** : rattrape les leads collectés avant la
+mise en service (ou en échec), par lots de 25 toutes les 10 secondes via WP-Cron.
+L'avancement s'affiche dans **Réglages → Journal**.
+
+L'heure des leads est lue dans le fuseau du CRM (Africa/Dakar) : le fuseau du site
+WordPress (Réglages → Général) doit être le même, sinon le délai de première réponse est faussé.
+
 ### HubSpot
 
 **Réglages → Intégration CRM** : cocher « Activer », choisir HubSpot, coller un jeton
@@ -356,7 +379,7 @@ iam-leads/
 │   ├── class-dashboard.php          Agrégations pour les graphiques
 │   ├── class-export.php             Registre de colonnes, export CSV et XLSX
 │   ├── class-xlsx-writer.php        Écriture OOXML sans dépendance
-│   ├── class-crm-integration.php    CRM modulaire + HubSpot
+│   ├── class-crm-integration.php    CRM modulaire : IAM CRM, HubSpot
 │   ├── class-whatsapp.php           WhatsApp modulaire + Meta et Twilio
 │   ├── class-emails.php             Notification interne et accusé de réception
 │   └── class-logger.php             Journal des envois
@@ -404,6 +427,14 @@ Le plugin se met à jour depuis les **Releases** du dépôt
    mise à jour, tables et synchronisations sont rejouées au premier passage dans l'admin.
 
 ## Journal des versions
+
+### 1.8.0
+- **Destinataires par formulaire** : chaque formulaire choisit qui reçoit ses leads (Formulaires → Modifier → « Qui reçoit les leads »), par exemple l'accueil pour les demandes générales, Banel pour les certifications, info@ pour le contact. Laissé vide, le formulaire prévient les destinataires par défaut (Réglages → E-mails) ; un interrupteur permet de prévenir aussi ces derniers en copie. La liste des formulaires affiche qui reçoit quoi.
+- **Diagnostic SMTP** : l'e-mail de test inscrit au journal le serveur, le port, le compte et les réponses du serveur (jamais les identifiants). Rappel affiché pour Gmail / Google Workspace : un mot de passe d'application est nécessaire.
+- **Connexion au CRM dans l'admin** : Réglages → CRM présente le choix du CRM (IAM CRM ou HubSpot) en cartes, n'affiche que les champs utiles, montre l'adresse exacte d'envoi, un bouton « Tester la connexion » (aucun prospect créé : il vérifie l'adresse et la clé), le résultat du dernier test et les compteurs de leads synchronisés / en attente / en échec.
+- L'expéditeur technique (enveloppe) prend l'adresse du compte SMTP : les serveurs qui refusent un expéditeur différent du compte connecté acceptent désormais l'envoi.
+- **Fournisseur CRM « IAM CRM »** : envoi de chaque lead au CRM interne du Groupe IAM (adresse et clé API dans Réglages → CRM). Devient le fournisseur par défaut des nouvelles installations ; HubSpot reste disponible.
+- **Rattrapage des leads existants** : bouton « Envoyer les leads existants au CRM », traitement par lots via WP-Cron, suivi dans le journal.
 
 ### 1.7.0
 - **Admin identique à IAM Certifications** : mêmes composants et mêmes classes (`iam-adm-head`, `iam-adm-btn`, `iam-adm-tabs`, `iam-adm-row`, `iam-sec` à icône, `iam-field`, `iam-switch`, pied collant `iam-wiz-foot`). Les champs sont libellés au-dessus, sur deux colonnes, à la place des tableaux WordPress.

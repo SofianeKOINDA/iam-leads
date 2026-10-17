@@ -50,7 +50,26 @@ class IAM_Leads_Form_Builder {
 			// Vides : le bouton garde les couleurs IAM par défaut (or, texte foncé).
 			'couleur_bouton'       => '',
 			'couleur_bouton_texte' => '',
+
+			// Destinataires des notifications internes de CE formulaire.
+			// Vide : les destinataires par défaut (Réglages → E-mails).
+			'destinataires'        => '',
+			// Avec des destinataires propres : prévenir aussi ceux par défaut.
+			'copie_defaut'         => 0,
 		);
+	}
+
+	/**
+	 * Liste d'adresses valides à partir d'une saisie séparée par des virgules,
+	 * des points-virgules ou des retours à la ligne.
+	 *
+	 * @param string $saisie Adresses saisies.
+	 * @return string[]
+	 */
+	public static function adresses( $saisie ) {
+		$liste = preg_split( '/[\s,;]+/', (string) $saisie, -1, PREG_SPLIT_NO_EMPTY );
+
+		return array_values( array_unique( array_filter( array_map( 'sanitize_email', $liste ), 'is_email' ) ) );
 	}
 
 	/**
@@ -225,6 +244,8 @@ class IAM_Leads_Form_Builder {
 			'bouton_suivant'       => sanitize_text_field( $reglages['bouton_suivant'] ?? 'Continuer' ),
 			'couleur_bouton'       => self::couleur( $reglages['couleur_bouton'] ?? '' ),
 			'couleur_bouton_texte' => self::couleur( $reglages['couleur_bouton_texte'] ?? '' ),
+			'destinataires'        => implode( ', ', self::adresses( $reglages['destinataires'] ?? '' ) ),
+			'copie_defaut'         => empty( $reglages['copie_defaut'] ) ? 0 : 1,
 		);
 
 		$payload = array(

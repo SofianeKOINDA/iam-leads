@@ -59,16 +59,37 @@ class IAM_Leads_Emails {
 	}
 
 	/**
-	 * Mot de passe SMTP.
-	 * La constante, à poser dans wp-config.php, prime sur la valeur stockée en
-	 * base : elle permet de garder le secret hors de la table des options.
+	 * Mode diagnostic (e-mail de test) : la conversation avec le serveur
+	 * SMTP est conservée pour être écrite au journal en cas d'échec.
+	 *
+	 * @var bool
 	 */
-	private static function mot_de_passe_smtp() {
-		if ( defined( 'IAM_LEADS_SMTP_PASS' ) && IAM_LEADS_SMTP_PASS ) {
-			return (string) IAM_LEADS_SMTP_PASS;
-		}
+	private static $diagnostic = false;
 
-		return (string) IAM_Leads::get_setting( 'smtp_motdepasse' );
+	/**
+	 * Lignes de la conversation SMTP (mode diagnostic).
+	 *
+	 * @var string[]
+	 */
+	private static $trace = array();
+
+	/**
+	 * Réglages SMTP (Réglages → Serveur d'envoi). La constante
+	 * IAM_LEADS_SMTP_PASS de wp-config.php prime sur le mot de passe stocké.
+	 *
+	 * @return array{actif:bool,hote:string,port:int,securite:string,utilisateur:string,motdepasse:string}
+	 */
+	private static function config_smtp() {
+		$hote = trim( (string) IAM_Leads::get_setting( 'smtp_hote' ) );
+
+		return array(
+			'actif'       => (bool) IAM_Leads::get_setting( 'smtp_active' ) && '' !== $hote,
+			'hote'        => $hote,
+			'port'        => (int) IAM_Leads::get_setting( 'smtp_port', 587 ),
+			'securite'    => (string) IAM_Leads::get_setting( 'smtp_securite', 'tls' ),
+			'utilisateur' => trim( (string) IAM_Leads::get_setting( 'smtp_utilisateur' ) ),
+			'motdepasse'  => defined( 'IAM_LEADS_SMTP_PASS' ) && IAM_LEADS_SMTP_PASS ? (string) IAM_LEADS_SMTP_PASS : (string) IAM_Leads::get_setting( 'smtp_motdepasse' ),
+		);
 	}
 
 	/**
@@ -79,30 +100,45 @@ class IAM_Leads_Emails {
 	 * @param PHPMailer\PHPMailer\PHPMailer $phpmailer Instance fournie par WordPress.
 	 */
 	public static function configurer_smtp( $phpmailer ) {
-		if ( ! IAM_Leads::get_setting( 'smtp_active' ) ) {
-			return;
-		}
+		$config = self::config_smtp();
 
-		$hote = trim( (string) IAM_Leads::get_setting( 'smtp_hote' ) );
-
-		if ( '' === $hote ) {
+		if ( ! $config['actif'] ) {
 			return;
 		}
 
 		$phpmailer->isSMTP();
-		$phpmailer->Host = $hote;
-		$phpmailer->Port = (int) IAM_Leads::get_setting( 'smtp_port', 587 );
+		$phpmailer->Host        = $config['hote'];
+		$phpmailer->Port        = $config['port'] ? $config['port'] : 587;
+		$phpmailer->SMTPSecure  = in_array( $config['securite'], array( 'tls', 'ssl' ), true ) ? $config['securite'] : '';
+		$phpmailer->SMTPAutoTLS = 'aucune' !== $config['securite'];
+		$phpmailer->Timeout     = 20;
 
-		$securite               = IAM_Leads::get_setting( 'smtp_securite', 'tls' );
-		$phpmailer->SMTPSecure  = in_array( $securite, array( 'tls', 'ssl' ), true ) ? $securite : '';
-		$phpmailer->SMTPAutoTLS = 'aucune' !== $securite;
-
-		$utilisateur = trim( (string) IAM_Leads::get_setting( 'smtp_utilisateur' ) );
-
-		if ( '' !== $utilisateur ) {
+		if ( '' !== $config['utilisateur'] ) {
 			$phpmailer->SMTPAuth = true;
-			$phpmailer->Username = $utilisateur;
-			$phpmailer->Password = self::mot_de_passe_smtp();
+			$phpmailer->Username = $config['utilisateur'];
+			$phpmailer->Password = $config['motdepasse'];
+
+			/*
+			 * Enveloppe (Return-Path) au nom du compte authentifié : beaucoup
+			 * de serveurs refusent un message dont l'expéditeur technique
+			 * n'est pas le compte connecté (« Sender address rejected »).
+			 */
+			if ( is_email( $config['utilisateur'] ) ) {
+				$phpmailer->Sender = $config['utilisateur'];
+			}
+		}
+
+		if ( self::$diagnostic ) {
+			// Niveau 2 : réponses du serveur et commandes du client. Les
+			// commandes du client sont écartées : elles portent les
+			// identifiants encodés pendant l'authentification.
+			$phpmailer->SMTPDebug   = 2;
+			$phpmailer->Debugoutput = static function ( $ligne ) {
+				$ligne = trim( (string) $ligne );
+				if ( '' !== $ligne && false === strpos( $ligne, 'CLIENT -> SERVER' ) ) {
+					self::$trace[] = $ligne;
+				}
+			};
 		}
 	}
 
@@ -119,12 +155,35 @@ class IAM_Leads_Emails {
 		$corps .= esc_html( sprintf( 'IAM Leads %1$s — %2$s', IAM_LEADS_VERSION, home_url() ) );
 		$corps .= '</p>';
 
-		return self::envoyer(
+		self::$diagnostic = true;
+		self::$trace      = array();
+
+		$config = self::config_smtp();
+		$envoye = self::envoyer(
 			$destinataire,
 			__( '[IAM] Test d\'envoi', 'iam-leads' ),
 			$corps,
 			__( 'E-mail de test', 'iam-leads' )
 		);
+
+		self::$diagnostic = false;
+
+		IAM_Leads_Logger::ajouter(
+			'email',
+			$envoye ? 'succes' : 'echec',
+			sprintf(
+				'Test SMTP — serveur : %1$s:%2$d (%3$s) ; compte : %4$s. %5$s',
+				$config['actif'] ? $config['hote'] : '(aucun, envoi PHP mail())',
+				$config['port'],
+				$config['securite'],
+				'' !== $config['utilisateur'] ? $config['utilisateur'] : 'sans authentification',
+				self::$trace ? 'Réponses du serveur : ' . implode( ' | ', array_slice( self::$trace, -12 ) ) : ''
+			)
+		);
+
+		self::$trace = array();
+
+		return $envoye;
 	}
 
 	/**
@@ -169,16 +228,35 @@ class IAM_Leads_Emails {
 	}
 
 	/**
+	 * Destinataires de la notification interne d'un formulaire : les siens
+	 * s'il en a (plus ceux par défaut si « copie » est cochée), sinon ceux
+	 * par défaut de Réglages → E-mails.
+	 *
+	 * @param object|null $form Formulaire.
+	 * @return string[]
+	 */
+	public static function destinataires( $form ) {
+		$defaut = IAM_Leads_Form_Builder::adresses( IAM_Leads::get_setting( 'admin_emails' ) );
+		$propre = $form && ! empty( $form->reglages['destinataires'] ) ? IAM_Leads_Form_Builder::adresses( $form->reglages['destinataires'] ) : array();
+
+		if ( ! $propre ) {
+			return $defaut;
+		}
+
+		return ! empty( $form->reglages['copie_defaut'] ) ? array_values( array_unique( array_merge( $propre, $defaut ) ) ) : $propre;
+	}
+
+	/**
 	 * Notification à l'équipe IAM.
 	 */
 	public static function notifier_admin( $lead, $form ) {
-		$destinataires = array_filter( array_map( 'trim', explode( ',', (string) IAM_Leads::get_setting( 'admin_emails' ) ) ) );
+		$destinataires = self::destinataires( $form );
 
 		if ( ! $destinataires ) {
 			IAM_Leads_Logger::ajouter(
 				'email',
 				'echec',
-				__( 'Notification interne ignorée : aucun destinataire dans Réglages → Destinataires internes.', 'iam-leads' ),
+				__( 'Notification interne ignorée : ni le formulaire ni Réglages → E-mails n\'ont de destinataire.', 'iam-leads' ),
 				(int) $lead->id
 			);
 
